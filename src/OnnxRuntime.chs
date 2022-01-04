@@ -8,9 +8,9 @@ import Foreign.C.String
 
 ortVersion :: IO String
 ortVersion = do
-  ortApiBase <- c_GetOrtApiBase
-  versionCString <- c_GetVersionString ortApiBase
-  peekCString versionCString
+  ortApiBasePtr <- c_GetOrtApiBase
+  versionString <- c_GetVersionString ortApiBasePtr
+  peekCString versionString
 
 
 #include <onnxruntime/core/session/onnxruntime_c_api.h>
