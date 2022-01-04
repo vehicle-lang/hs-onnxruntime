@@ -1,0 +1,6 @@
+cradle:
+  cabal:
+    - path: "./app"
+      component: "exe:onnxruntime"
+    - path: "./src"
+      component: "lib:onnxruntime"

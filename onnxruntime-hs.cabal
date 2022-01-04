@@ -1,0 +1,24 @@
+cabal-version:      3.0
+name:               onnxruntime-hs
+version:            0.1.10.0
+license:            BSD-3-Clause
+author:             Wen Kokke
+maintainer:         wenkokke@users.noreply.github.com
+extra-source-files: CHANGELOG.md
+
+library
+  exposed-modules:  OnnxRuntime
+  hs-source-dirs:   src
+  build-depends:    base
+  extra-libraries:  onnxruntime
+  default-language: Haskell2010
+
+executable onnxruntime-version
+  main-is:          Main.hs
+  hs-source-dirs:   app
+  build-depends:
+    , base
+    , onnxruntime-hs
+
+  extra-libraries:  onnxruntime
+  default-language: Haskell2010
