@@ -1,6 +1,8 @@
 import OnnxRuntime
+import Foreign.C.String
 
 main :: IO ()
 main = do
-  ortApiBase <- c_OrtGetApiBase
-  print ortApiBase
+  ortApiBase <- getOrtApiBase
+  version <- getVersion ortApiBase
+  putStrLn version
