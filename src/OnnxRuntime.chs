@@ -6,6 +6,13 @@ import Foreign
 import Foreign.C.Types
 import Foreign.C.String
 
+ortVersion :: IO String
+ortVersion = do
+  ortApiBase <- c_GetOrtApiBase
+  versionCString <- c_GetVersionString ortApiBase
+  peekCString versionCString
+
+
 #include <onnxruntime/core/session/onnxruntime_c_api.h>
 
 -- * Configuration
@@ -44,29 +51,42 @@ import Foreign.C.String
 data OrtApiBase
 {#pointer *OrtApiBase as OrtApiBasePtr -> OrtApiBase #}
 
-getOrtApiBase :: IO OrtApiBasePtr
-getOrtApiBase = {#call unsafe OrtGetApiBase as ^ #}
+c_GetOrtApiBase :: IO OrtApiBasePtr
+c_GetOrtApiBase = {#call unsafe OrtGetApiBase as ^ #}
 
 foreign import ccall "dynamic"
-  mkFunOrtApiPtr :: FunPtr (CUInt -> IO (Ptr ())) -> CUInt -> IO (Ptr ())
+  mkFunGetOrtApi :: FunPtr (CUInt -> IO (Ptr ())) -> CUInt -> IO (Ptr ())
 
-getOrtApi :: OrtApiBasePtr -> IO OrtApiPtr
-getOrtApi ortApiBasePtr = do
-  getApi <- {#get OrtApiBase->GetApi #} ortApiBasePtr
-  ortApiPtr <- mkFunOrtApiPtr getApi {#const ORT_API_VERSION #}
+c_GetOrtApi :: OrtApiBasePtr -> IO OrtApiPtr
+c_GetOrtApi ortApiBasePtr = do
+  c_GetOrtApiPtr <- {#get OrtApiBase->GetApi #} ortApiBasePtr
+  ortApiPtr <- mkFunGetOrtApi c_GetOrtApiPtr {#const ORT_API_VERSION #}
   return (castPtr ortApiPtr)
 
 foreign import ccall "dynamic"
-  mkFunCString :: FunPtr (IO CString) -> IO CString
+  mkFunGetVersionString :: FunPtr (IO CString) -> IO CString
 
-getVersion :: OrtApiBasePtr -> IO String
-getVersion ortApiBasePtr = do
-  getVersionString <- {#get OrtApiBase->GetVersionString #} ortApiBasePtr
-  versionCString <- mkFunCString getVersionString
-  peekCString versionCString
+c_GetVersionString :: OrtApiBasePtr -> IO CString
+c_GetVersionString ortApiBasePtr = do
+  c_GetVersionStringPtr <- {#get OrtApiBase->GetVersionString #} ortApiBasePtr
+  mkFunGetVersionString c_GetVersionStringPtr
 
 
 -- * OrtApi
 
 data OrtApi
 {#pointer *OrtApi as OrtApiPtr -> OrtApi #}
+
+data OrtEnv
+{#pointer *OrtEnv as OrtEnvPtr -> OrtEnv #}
+
+-- TODO: Foreign.Pool for memory allocation
+-- TODO: Instance of Storable for Env and Session
+
+-- CreateEnv
+-- ReleaseEnv
+
+-- CreateSession
+-- ReleaseSession
+
+-- Run
