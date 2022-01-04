@@ -10,15 +10,12 @@ extra-source-files:
   include/onnxruntimeHS.h
 
 library
-  exposed-modules:  OnnxRuntime
-  hs-source-dirs:   src
-  build-depends:    base
-  extra-libraries:  onnxruntime
-  include-dirs:     include
-  includes:         include/onnxruntimeHS.h
-  install-includes: include/onnxruntimeHS.h
-  c-sources:        cbits/onnxruntimeHS.c
-  default-language: Haskell2010
+  exposed-modules:    OnnxRuntime
+  hs-source-dirs:     src
+  build-depends:      base
+  extra-libraries:    onnxruntime
+  default-language:   Haskell2010
+  build-tool-depends: c2hs:c2hs -any
 
 executable onnxruntime-version
   main-is:          Main.hs
