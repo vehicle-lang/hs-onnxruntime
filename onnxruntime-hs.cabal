@@ -5,9 +5,7 @@ license:            BSD-3-Clause
 author:             Wen Kokke
 maintainer:         wenkokke@users.noreply.github.com
 extra-source-files:
-  cbits/onnxruntimeHS.c
   CHANGELOG.md
-  include/onnxruntimeHS.h
 
 library
   exposed-modules:    Onnx.Runtime

@@ -1,6 +1,6 @@
 cradle:
   cabal:
     - path: "./app"
-      component: "exe:onnxruntime"
+      component: "exe:onnxruntime-version"
     - path: "./src"
-      component: "lib:onnxruntime"
+      component: "lib:onnxruntime-hs"

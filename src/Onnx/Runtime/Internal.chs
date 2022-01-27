@@ -1,4 +1,6 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module Onnx.Runtime.Internal where
 
@@ -8,7 +10,8 @@ import Foreign.C.String
 
 
 
-#include <onnxruntime/core/session/onnxruntime_c_api.h>
+-- #include <onnxruntime/core/session/onnxruntime_c_api.h>
+#include <onnxruntime_c_api.h>
 
 
 -- * Configuration
@@ -104,44 +107,66 @@ c_OrtApiBase_GetOrtApi ortApiBase = do
 foreign import ccall "dynamic"
   applyGetVersionStringPtr :: FunPtr (IO CString) -> IO CString
 
-c_OrtApiBase_GetVersionString :: OrtApiBase -> IO CString
+c_OrtApiBase_GetVersionString :: OrtApiBase -> IO String
 c_OrtApiBase_GetVersionString ortApiBase = do
   c_OrtApiBase_GetVersionStringPtr <- {#get OrtApiBase->GetVersionString #} ortApiBase
-  applyGetVersionStringPtr c_OrtApiBase_GetVersionStringPtr
+  versionCString <- applyGetVersionStringPtr c_OrtApiBase_GetVersionStringPtr
+  peekCString versionCString
 
 
 -- * OrtApi
 
 {#pointer *OrtApi as OrtApi newtype #}
-{#pointer *OrtEnv as OrtEnv newtype #}
-{#pointer *OrtStatus as OrtStatus newtype #}
-{#pointer *OrtMemoryInfo as OrtMemoryInfo newtype #}
-{#pointer *OrtIoBinding as OrtIoBinding newtype #}
-{#pointer *OrtSession as OrtSession newtype #}
-{#pointer *OrtValue as OrtValue newtype #}
-{#pointer *OrtRunOptions as OrtRunOptions newtype #}
-{#pointer *OrtTypeInfo as OrtTypeInfo newtype #}
-{#pointer *OrtTensorTypeAndShapeInfo as OrtTensorTypeAndShapeInfo newtype #}
-{#pointer *OrtSessionOptions as OrtSessionOptions newtype #}
-{#pointer *OrtCustomOpDomain as OrtCustomOpDomain newtype #}
-{#pointer *OrtMapTypeInfo as OrtMapTypeInfo newtype #}
-{#pointer *OrtSequenceTypeInfo as OrtSequenceTypeInfo newtype #}
-{#pointer *OrtModelMetadata as OrtModelMetadata newtype #}
-{#pointer *OrtThreadPoolParams as OrtThreadPoolParams newtype #}
-{#pointer *OrtThreadingOptions as OrtThreadingOptions newtype #}
-{#pointer *OrtArenaCfg as OrtArenaCfg newtype #}
-{#pointer *OrtPrepackedWeightsContainer as OrtPrepackedWeightsContainer newtype #}
-{#pointer *OrtTensorRTProviderOptionsV2 as OrtTensorRTProviderOptionsV2 newtype #}
+{#pointer *OrtEnv as OrtEnv foreign newtype #}
+{#pointer *OrtStatus as OrtStatus foreign newtype #}
+{#pointer *OrtMemoryInfo as OrtMemoryInfo foreign newtype #}
+{#pointer *OrtIoBinding as OrtIoBinding foreign newtype #}
+{#pointer *OrtSession as OrtSession foreign newtype #}
+{#pointer *OrtValue as OrtValue foreign newtype #}
+{#pointer *OrtRunOptions as OrtRunOptions foreign newtype #}
+{#pointer *OrtTypeInfo as OrtTypeInfo foreign newtype #}
+{#pointer *OrtTensorTypeAndShapeInfo as OrtTensorTypeAndShapeInfo foreign newtype #}
+{#pointer *OrtSessionOptions as OrtSessionOptions foreign newtype #}
+{#pointer *OrtCustomOpDomain as OrtCustomOpDomain foreign newtype #}
+{#pointer *OrtMapTypeInfo as OrtMapTypeInfo foreign newtype #}
+{#pointer *OrtSequenceTypeInfo as OrtSequenceTypeInfo foreign newtype #}
+{#pointer *OrtModelMetadata as OrtModelMetadata foreign newtype #}
+{#pointer *OrtThreadPoolParams as OrtThreadPoolParams foreign newtype #}
+{#pointer *OrtThreadingOptions as OrtThreadingOptions foreign newtype #}
+{#pointer *OrtArenaCfg as OrtArenaCfg foreign newtype #}
+{#pointer *OrtPrepackedWeightsContainer as OrtPrepackedWeightsContainer foreign newtype #}
+{#pointer *OrtTensorRTProviderOptionsV2 as OrtTensorRTProviderOptionsV2 foreign newtype #}
 
+deriving instance Storable OrtApi
+{-
+deriving instance Storable OrtStatus
+deriving instance Storable OrtMemoryInfo
+deriving instance Storable OrtIoBinding
+deriving instance Storable OrtSession
+deriving instance Storable OrtValue
+deriving instance Storable OrtRunOptions
+deriving instance Storable OrtTypeInfo
+deriving instance Storable OrtTensorTypeAndShapeInfo
+deriving instance Storable OrtSessionOptions
+deriving instance Storable OrtCustomOpDomain
+deriving instance Storable OrtMapTypeInfo
+deriving instance Storable OrtSequenceTypeInfo
+deriving instance Storable OrtModelMetadata
+deriving instance Storable OrtThreadPoolParams
+deriving instance Storable OrtThreadingOptions
+deriving instance Storable OrtArenaCfg
+deriving instance Storable OrtPrepackedWeightsContainer
+deriving instance Storable OrtTensorRTProviderOptionsV2
 
 foreign import ccall "dynamic"
   applyCreateEnvPtr :: FunPtr (CInt -> CString -> Ptr OrtEnv -> IO OrtStatus) -> CInt -> CString -> Ptr OrtEnv -> IO OrtStatus
 
-c_OrtApi_CreateEnv :: OrtApi -> OrtLoggingLevel -> CString -> Ptr OrtEnv -> IO OrtStatus
+c_OrtApi_CreateEnv :: OrtApi -> OrtLoggingLevel -> String -> Ptr OrtEnv -> IO OrtStatus
 c_OrtApi_CreateEnv ortApi ortLoggingLevel logId ortEnvOut = do
   let ortLoggingLevelCInt = toEnum . fromEnum $ ortLoggingLevel
+  logIdCString <- newCString logId
   c_OrtApi_CreateEnvPtr <- {#get OrtApi->CreateEnv #} ortApi
-  applyCreateEnvPtr c_OrtApi_CreateEnvPtr ortLoggingLevelCInt logId ortEnvOut
+  applyCreateEnvPtr c_OrtApi_CreateEnvPtr ortLoggingLevelCInt logIdCString ortEnvOut
 
 
 foreign import ccall "dynamic"
@@ -150,7 +175,7 @@ foreign import ccall "dynamic"
 c_OrtApi_ReleaseEnv :: OrtApi -> OrtEnv -> IO ()
 c_OrtApi_ReleaseEnv ortApi ortEnv = do
   c_OrtApi_ReleaseEnvPtr <- {#get OrtApi->ReleaseEnv #} ortApi
-  applyReleaseEnvPtr c_OrtApi_ReleaseEnvPtr ortEnv
+  withOrtEnv ortEnv $ applyReleaseEnvPtr c_OrtApi_ReleaseEnvPtr
 
 
 foreign import ccall "dynamic"
@@ -192,3 +217,4 @@ c_OrtApi_ReleaseSession ortApi ortSession = do
 
 -- c_OrtApi_Run :: OrtSession -> OrtRunOptions -> CString -> OrtValue -> CUInt -> CString -> CUInt -> Ptr OrtValue -> IO OrtStatus
 -- c_OrtApi_Run ortSession ortRunOptions inputNames inputs inputLen outputNames outputNamesLen outputs = _
+-}
