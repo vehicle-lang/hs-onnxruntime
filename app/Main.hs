@@ -1,4 +1,4 @@
-import OnnxRuntime
+import Onnx.Runtime
 import Foreign.C.String
 
 main :: IO ()

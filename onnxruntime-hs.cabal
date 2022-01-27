@@ -10,7 +10,8 @@ extra-source-files:
   include/onnxruntimeHS.h
 
 library
-  exposed-modules:    OnnxRuntime
+  exposed-modules:    Onnx.Runtime
+  other-modules:      Onnx.Runtime.Internal
   hs-source-dirs:     src
   build-depends:      base
   extra-libraries:    onnxruntime
