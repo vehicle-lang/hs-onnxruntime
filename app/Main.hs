@@ -1,7 +1,7 @@
-import Onnx.Runtime
+import Vehicle.OnnxRuntime
 import Foreign.C.String
 
 main :: IO ()
 main = do
-  version <- ortVersion
-  putStrLn version
+  let version = getInt
+  print version
