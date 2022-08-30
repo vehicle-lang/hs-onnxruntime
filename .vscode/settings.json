@@ -1,0 +1,7 @@
+{
+  "cmake.configureOnOpen": false,
+  "files.associations": {
+    "vehicle_onnxruntime.h": "c",
+    "onnxruntime_c_api.h": "c"
+  }
+}

@@ -11,14 +11,18 @@ extra-source-files:
 
 executable onnxruntime-version
   main-is:          Main.hs
-  hs-source-dirs:   app, src
+  hs-source-dirs:   app src
+  other-modules:
+    Vehicle.OnnxRuntime
+    Vehicle.OnnxRuntime.Bindings
 
-  other-modules:      Vehicle.OnnxRuntime
-  build-depends:      base
-  default-language:   Haskell2010
-  build-tool-depends: c2hs:c2hs -any
+  build-depends:
+    , base
+    , resourcet  >=1.2.6
 
-  C-sources:          cbits/vehicle_onnxruntime.c
-  Include-dirs:       include, cbits
-  Includes:           include/vehicle_onnxruntime.h
-  Install-includes:   include/vehicle_onnxruntime.h
+  default-language: Haskell2010
+  extra-libraries:  onnxruntime
+  c-sources:        cbits/vehicle_onnxruntime.c
+  include-dirs:     include cbits
+  includes:         include/vehicle_onnxruntime.h
+  install-includes: include/vehicle_onnxruntime.h

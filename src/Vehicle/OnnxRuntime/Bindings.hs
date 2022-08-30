@@ -1,0 +1,31 @@
+{-# LANGUAGE ForeignFunctionInterface #-}
+
+module Vehicle.OnnxRuntime.Bindings where
+
+import Foreign
+import Foreign.C.Types
+import Foreign.C.String
+
+newtype Env = Env (Ptr Env)
+newtype SessionOptions = SessionOptions (Ptr SessionOptions)
+newtype Session = Session (Ptr Session)
+newtype TypeInfo = TypeInfo (Ptr TypeInfo)
+newtype TensorTypeAndShapeInfo = TensorTypeAndShapeInfo (Ptr TensorTypeAndShapeInfo)
+
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_Init :: IO CInt
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_GetVersionString :: IO CString
+
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_CreateEnv :: IO (Ptr Env)
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_ReleaseEnv :: Ptr Env -> IO ()
+
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_CreateSessionOptions :: IO (Ptr SessionOptions)
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_ReleaseSessionOptions :: Ptr SessionOptions -> IO ()
+
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_CreateSession :: Ptr Env -> Ptr SessionOptions -> CString -> IO (Ptr Session)
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_ReleaseSession :: Ptr Session -> IO ()
+
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_ReleaseTypeInfo :: Ptr TypeInfo -> IO ()
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_CastTypeInfoToTensorInfo :: Ptr TypeInfo -> IO (Ptr TensorTypeAndShapeInfo)
+
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_SessionGetInputCount :: Ptr Session -> IO CSize
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_SessionGetInputTypeInfo :: Ptr Session -> CSize -> IO (Ptr TypeInfo)
