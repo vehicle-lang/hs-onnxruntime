@@ -79,10 +79,9 @@ void onnxruntimeHS_ReleaseSession(OrtSession* session)
   g_ort->ReleaseSession(session);
 }
 
-void onnxruntimeHS_ReleaseTypeInfo(OrtTypeInfo* type_info)
-{
-  g_ort->ReleaseTypeInfo(type_info);
-}
+/**********
+ * Inputs *
+ **********/
 
 size_t onnxruntimeHS_SessionGetInputCount(const OrtSession* session)
 {
@@ -99,10 +98,50 @@ OrtTypeInfo* onnxruntimeHS_SessionGetInputTypeInfo(const OrtSession* session, si
   return type_info;
 }
 
+/***********
+ * Outputs *
+ ***********/
+
+size_t onnxruntimeHS_SessionGetOutputCount(const OrtSession* session)
+{
+  size_t size;
+  ORT_ABORT_ON_ERROR(g_ort->SessionGetOutputCount(session, &size));
+  return size;
+}
+
+OrtTypeInfo* onnxruntimeHS_SessionGetOutputTypeInfo(const OrtSession* session, size_t index)
+{
+  OrtTypeInfo* type_info;
+  ORT_ABORT_ON_ERROR(g_ort->SessionGetOutputTypeInfo(session, index, &type_info));
+  assert(type_info != NULL);
+  return type_info;
+}
+
+/*************
+ * Type info *
+ *************/
+
 const OrtTensorTypeAndShapeInfo* onnxruntimeHS_CastTypeInfoToTensorInfo(const OrtTypeInfo* type_info)
 {
   const OrtTensorTypeAndShapeInfo* tensor_info;
   ORT_ABORT_ON_ERROR(g_ort->CastTypeInfoToTensorInfo(type_info, &tensor_info));
   assert(tensor_info != NULL);
   return tensor_info;
+}
+
+const size_t onnxruntimeHS_GetDimensionsCount(const OrtTensorTypeAndShapeInfo* tensor_info)
+{
+  size_t count;
+  ORT_ABORT_ON_ERROR(g_ort->GetDimensionsCount(tensor_info, &count));
+  return count;
+}
+
+void onnxruntimeHS_GetDimensions(const OrtTensorTypeAndShapeInfo* tensor_info, int64_t* dimensions, const size_t dimensions_count)
+{
+  ORT_ABORT_ON_ERROR(g_ort->GetDimensions(tensor_info, dimensions, dimensions_count));
+}
+
+void onnxruntimeHS_ReleaseTypeInfo(OrtTypeInfo* type_info)
+{
+  g_ort->ReleaseTypeInfo(type_info);
 }

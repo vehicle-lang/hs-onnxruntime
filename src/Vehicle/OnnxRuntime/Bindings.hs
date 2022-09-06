@@ -24,8 +24,14 @@ foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_ReleaseSession
 foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_CreateSession :: Ptr Env -> Ptr SessionOptions -> CString -> IO (Ptr Session)
 foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_ReleaseSession :: Ptr Session -> IO ()
 
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_SessionGetInputCount :: Ptr Session -> IO CSize
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_SessionGetInputTypeInfo :: Ptr Session -> CSize -> IO (Ptr TypeInfo)
+
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_SessionGetOutputCount :: Ptr Session -> IO CSize
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_SessionGetOutputTypeInfo :: Ptr Session -> CSize -> IO (Ptr TypeInfo)
+
 foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_ReleaseTypeInfo :: Ptr TypeInfo -> IO ()
 foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_CastTypeInfoToTensorInfo :: Ptr TypeInfo -> IO (Ptr TensorTypeAndShapeInfo)
 
-foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_SessionGetInputCount :: Ptr Session -> IO CSize
-foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_SessionGetInputTypeInfo :: Ptr Session -> CSize -> IO (Ptr TypeInfo)
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_GetDimensionsCount :: Ptr TensorTypeAndShapeInfo -> IO CSize
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_GetDimensions :: Ptr TensorTypeAndShapeInfo -> Ptr CLong -> CSize -> IO ()
