@@ -8,7 +8,11 @@ main = do
   networkType <- runOnnxRuntime $ do
     env <- createEnv
     sessionOptions <- createSessionOptions
-    session <- createSession env sessionOptions "/home/matthew/Code/AISEC/vehicle/examples/windController/controller.onnx"
+
+    -- let network = "/home/matthew/Code/AISEC/vehicle/examples/windController/controller.onnx"
+    --let network = "/home/matthew/Code/AISEC/vehicle/test/networks/identity-2.onnx"
+    let network = "/home/matthew/Code/AISEC/Marabou/resources/onnx/acasxu/ACASXU_experimental_v2a_1_1.onnx"
+    session <- createSession env sessionOptions network
 
     getNetworkType session
 

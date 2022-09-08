@@ -141,6 +141,13 @@ void onnxruntimeHS_GetDimensions(const OrtTensorTypeAndShapeInfo* tensor_info, i
   ORT_ABORT_ON_ERROR(g_ort->GetDimensions(tensor_info, dimensions, dimensions_count));
 }
 
+enum ONNXTensorElementDataType onnxruntimeHS_GetTensorElementType(const OrtTensorTypeAndShapeInfo* tensor_info)
+{
+  enum ONNXTensorElementDataType elementType;
+  ORT_ABORT_ON_ERROR(g_ort->GetTensorElementType(tensor_info, &elementType));
+  return elementType;
+}
+
 void onnxruntimeHS_ReleaseTypeInfo(OrtTypeInfo* type_info)
 {
   g_ort->ReleaseTypeInfo(type_info);

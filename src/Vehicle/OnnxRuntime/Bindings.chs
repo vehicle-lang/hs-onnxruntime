@@ -6,6 +6,16 @@ import Foreign
 import Foreign.C.Types
 import Foreign.C.String
 
+#include <vehicle_onnxruntime.h>
+
+{#enum ONNXTensorElementDataType
+  as OnnxElementType
+  {underscoreToCase}
+  with prefix = "ONNX_TENSOR_ELEMENT_DATA_TYPE_"
+  add  prefix = "ONNX_"
+  deriving (Eq, Show)
+  #}
+
 newtype Env = Env (Ptr Env)
 newtype SessionOptions = SessionOptions (Ptr SessionOptions)
 newtype Session = Session (Ptr Session)
@@ -35,3 +45,4 @@ foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_CastTypeInfoTo
 
 foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_GetDimensionsCount :: Ptr TensorTypeAndShapeInfo -> IO CSize
 foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_GetDimensions :: Ptr TensorTypeAndShapeInfo -> Ptr CLong -> CSize -> IO ()
+foreign import ccall unsafe "vehicle_onnxruntime.h" onnxruntimeHS_GetTensorElementType :: Ptr TensorTypeAndShapeInfo -> IO CInt

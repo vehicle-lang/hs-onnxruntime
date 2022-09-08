@@ -53,23 +53,41 @@ createSession (Env envPtr) (SessionOptions sessionOptionsPtr) modelPath = OnnxRu
   (_releaseKey, sessionPtr) <- allocate create_session onnxruntimeHS_ReleaseSession
   return $ Session sessionPtr
 
-getNetworkType :: Session -> OnnxRuntime ([[Int]], [[Int]])
+data OnnxNetworkType = OnnxNetworkType
+  { inputTypes  :: [OnnxTensorType]
+  , outputTypes :: [OnnxTensorType]
+  } deriving (Show)
+
+data OnnxTensorType = OnnxTensorType
+  { elementType :: OnnxElementType
+  , dimensions  :: [Int]
+  } deriving (Show)
+
+getNetworkType :: Session -> OnnxRuntime OnnxNetworkType
 getNetworkType session = do
-  inputSize <- getInputCount session
-  inputTypes <- forM [0.. inputSize-1] $ \inputIndex -> do
-    (inputReleaseKey, inputInfo) <- getInputTensorTypeAndShapeInfo session inputIndex
-    inputDimensions <- getDimensions inputInfo
-    release inputReleaseKey
-    return inputDimensions
+  inputTypes <- getTensorTypes session getInputCount getInputTensorTypeAndShapeInfo
+  outputTypes <- getTensorTypes session getOutputCount getOutputTensorTypeAndShapeInfo
+  return $ OnnxNetworkType inputTypes outputTypes
 
-  outputSize <- getOutputCount session
-  outputTypes <- forM [0.. outputSize-1] $ \outputIndex -> do
-    (outputReleaseKey, outputInfo) <- getOutputTensorTypeAndShapeInfo session outputIndex
-    outputDimensions <- getDimensions outputInfo
-    release outputReleaseKey
-    return outputDimensions
+getTensorTypes :: Session
+               -> (Session -> OnnxRuntime Int)
+               -> (Session -> Int -> OnnxRuntime (ReleaseKey, TensorTypeAndShapeInfo))
+               -> OnnxRuntime [OnnxTensorType]
+getTensorTypes session getCount getTensorTypeAndShapeInfo = do
+  count <- getCount session
+  forM [0.. count-1] $ \index ->
+    getTensorType session getTensorTypeAndShapeInfo index
 
-  return (inputTypes, outputTypes)
+getTensorType :: Session
+              -> (Session -> Int -> OnnxRuntime (ReleaseKey, TensorTypeAndShapeInfo))
+              -> Int
+              -> OnnxRuntime OnnxTensorType
+getTensorType session getTensorTypeAndShapeInfo index = do
+  (releaseKey, tensorInfo) <- getTensorTypeAndShapeInfo session index
+  elementType <- getElementType tensorInfo
+  dimensions <- getDimensions tensorInfo
+  release releaseKey
+  return $ OnnxTensorType elementType dimensions
 
 getInputCount :: Session -> OnnxRuntime Int
 getInputCount (Session sessionPtr) = do
@@ -108,3 +126,8 @@ getDimensions (TensorTypeAndShapeInfo tensorInfo) = do
   release releaseKey
 
   return $ fmap fromIntegral dimensions
+
+getElementType :: TensorTypeAndShapeInfo -> OnnxRuntime OnnxElementType
+getElementType (TensorTypeAndShapeInfo tensorInfo) = do
+  elementType <- liftIO $ onnxruntimeHS_GetTensorElementType tensorInfo
+  return $ toEnum (fromIntegral elementType)
