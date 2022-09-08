@@ -1,0 +1,23 @@
+cradle:
+  multi:
+    - path: "./app"
+      config:
+        cradle:
+          cabal:
+            - path: "./app"
+              component: "exe:onnxruntime"
+
+    - path: "./src"
+      config:
+        cradle:
+          cabal:
+            - path: "./src"
+              component: "lib:onnxruntime"
+
+    - path: "./"
+      config:
+        cradle:
+          direct:
+            arguments:
+            - "-package Cabal-3.8.1.0"
+            - "-package base-4.15.1.0"
