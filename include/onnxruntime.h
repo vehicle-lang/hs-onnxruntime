@@ -1,5 +1,5 @@
-#ifndef __VEHICLE_ONNXRUNTIME_H__
-#define __VEHICLE_ONNXRUNTIME_H__
+#ifndef __onnxruntime_H__
+#define __onnxruntime_H__
 
 #include "onnxruntime/core/session/onnxruntime_c_api.h"
 
@@ -21,4 +21,4 @@ const OrtTensorTypeAndShapeInfo* onnxruntimeHS_CastTypeInfoToTensorInfo(const Or
 size_t onnxruntimeHS_SessionGetInputCount(const OrtSession* session);
 OrtTypeInfo* onnxruntimeHS_SessionGetInputTypeInfo(const OrtSession* session, size_t index);
 
-#endif /* __VEHICLE_ONNXRUNTIME_H__ */
+#endif /* __onnxruntime_H__ */

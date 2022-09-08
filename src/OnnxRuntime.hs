@@ -1,6 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Vehicle.OnnxRuntime where
+module OnnxRuntime where
 
 import Control.Monad (forM)
 import Control.Monad.Trans.Resource
@@ -10,7 +10,7 @@ import Control.Exception (throwIO, Exception)
 import Foreign.C.String
 import Foreign.Ptr (Ptr)
 
-import Vehicle.OnnxRuntime.Bindings
+import OnnxRuntime.Bindings
 import Foreign (free, mallocArray, newArray, peekArray)
 
 newtype OnnxRuntime a = OnnxRuntime (ResourceT IO a)

@@ -1,4 +1,4 @@
-import Vehicle.OnnxRuntime
+import OnnxRuntime
 import Foreign.C.String
 
 main :: IO ()
