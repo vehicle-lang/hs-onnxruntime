@@ -16,8 +16,8 @@ custom-setup
     , Cabal
 
 executable onnxruntime-version
-  main-is:            Main.hs
-  hs-source-dirs:     app src
+  main-is:                 Main.hs
+  hs-source-dirs:          app src
   other-modules:
     OnnxRuntime
     OnnxRuntime.Bindings
@@ -26,10 +26,15 @@ executable onnxruntime-version
     , base
     , resourcet  >=1.2.6
 
-  default-language:   Haskell2010
-  extra-libraries:    onnxruntime
-  build-tool-depends: c2hs:c2hs -any
-  c-sources:          cbits/onnxruntime.c
-  include-dirs:       include cbits
-  includes:           include/onnxruntime.h
-  install-includes:   include/onnxruntime.h
+  default-language:        Haskell2010
+  extra-bundled-libraries: libonnxruntime
+  build-tool-depends:      c2hs:c2hs -any
+  c-sources:               cbits/onnxruntime.c
+  include-dirs:            include cbits vendor/onnxruntime/include
+  includes:
+    include/onnxruntime.h
+    vendor/onnxruntime/include/onnxruntime/core/session/onnxruntime_c_api.h
+
+  install-includes:
+    include/onnxruntime.h
+    vendor/onnxruntime/include/onnxruntime/core/session/onnxruntime_c_api.h

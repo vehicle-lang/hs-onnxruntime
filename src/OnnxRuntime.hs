@@ -11,7 +11,7 @@ import Foreign.C.String
 import Foreign.Ptr (Ptr)
 
 import OnnxRuntime.Bindings
-import Foreign (free, mallocArray, newArray, peekArray)
+import Foreign (free, mallocArray,  newArray, peekArray)
 
 newtype OnnxRuntime a = OnnxRuntime (ResourceT IO a)
   deriving (Functor, Applicative, Monad, MonadIO, MonadResource)

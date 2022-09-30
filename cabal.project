@@ -1,4 +1,1 @@
 packages: onnxruntime.cabal
-
-extra-lib-dirs: onnxruntime/build/Linux/RelWithDebInfo
-extra-include-dirs: onnxruntime/include
