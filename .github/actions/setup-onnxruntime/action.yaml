@@ -1,0 +1,37 @@
+name: "Setup onnxruntime"
+description: "Install the latest onnxruntime version"
+outputs:
+  onnxruntime-libdir:
+    description: "The onnxruntime libdir"
+    value: ${{ steps.outputs.outputs.onnxruntime-libdir }}
+  onnxruntime-includedir:
+    description: "The onnxruntime includedir"
+    value: ${{ steps.outputs.outputs.onnxruntime-includedir }}
+  onnxruntime-pkg-config-path:
+    description: "The onnxruntime pkg-config path"
+    value: ${{ steps.outputs.outputs.onnxruntime-pkg-config-path }}
+runs:
+  using: composite
+  steps:
+    - name: 🛠️ Setup Homebrew
+      if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
+      id: setup-homebrew
+      uses: Homebrew/actions/setup-homebrew@master
+
+    - name: 🛠️ Install onnxruntime (Linux and macOS)
+      if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
+      run: |
+        brew install onnxruntime
+        ONNXRUNTIME_VERSION=$(brew info onnxruntime | head -1 | cut -d' ' -f4)
+        echo "ONNXRUNTIME_LIBDIR=$(brew --cellar)/onnxruntime/$ONNXRUNTIME_VERSION/lib" >> $GITHUB_ENV
+        echo "ONNXRUNTIME_INCLUDEDIR=$(brew --cellar)/onnxruntime/$ONNXRUNTIME_VERSION/include" >> $GITHUB_ENV
+        echo "ONNXRUNTIME_PKG_CONFIG_PATH=$(brew --cellar)/onnxruntime/$ONNXRUNTIME_VERSION/lib/pkgconfig" >> $GITHUB_ENV
+      shell: sh
+
+    - name: 🛠️ Set outputs
+      id: outputs
+      run: |
+        echo "onnxruntime-libdir=$ONNXRUNTIME_LIBDIR" >> $GITHUB_OUTPUT
+        echo "onnxruntime-includedir=$ONNXRUNTIME_INCLUDEDIR" >> $GITHUB_OUTPUT
+        echo "onnxruntime-pkg-config-path=$ONNXRUNTIME_PKG_CONFIG_PATH" >> $GITHUB_OUTPUT
+      shell: sh

@@ -1,1 +1,1 @@
-packages: onnxruntime.cabal
+packages: onnxruntime-capi.cabal

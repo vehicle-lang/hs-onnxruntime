@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  merge_group:
+
+defaults:
+  run:
+    shell: "sh"
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  #############################################################################
+  # Build
+  #############################################################################
+
+  build:
+    name: |
+      ${{ matrix.name
+       || format(
+            'Build on {0}{1}{2}{3}',
+            startsWith(matrix.os, 'ubuntu-') && 'Linux' || startsWith(matrix.os, 'macOS-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows',
+            matrix.ghc-version && format(' with GHC {0}', matrix.ghc-version),
+            matrix.cabal-version && format(', Cabal {0}', matrix.cabal-version),
+            matrix.onnxruntime-version && format(', and ONNX Runtime {0}', matrix.onnxruntime-version)
+          )
+       }}
+    runs-on: "${{ matrix.os }}"
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest", "macOS-latest"]
+        ghc-version: ["9.8"]
+        cabal-version: ["3.12"]
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: 🛠️ Setup ONNX Runtime
+        id: setup-onnxruntime
+        uses: ./.github/actions/setup-onnxruntime
+
+      - name: 🛠️ Setup GHC ${{ matrix.ghc-version }} and Cabal ${{ matrix.cabal-version }}
+        uses: haskell-actions/setup@v2
+        id: setup-haskell
+        with:
+          ghc-version: ${{ matrix.ghc-version }}
+          cabal-version: ${{ matrix.cabal-version }}
+
+      - name: 🛠️ Configure Haskell package
+        run: |
+          cabal configure \
+            --enable-tests \
+            --extra-lib-dirs=${{ steps.setup-onnxruntime.outputs.onnxruntime-libdir }} \
+            --extra-include-dirs=${{ steps.setup-onnxruntime.outputs.onnxruntime-includedir }} \
+            --flags=-pkg-config
+
+      - name: 🏗️ Build Haskell package
+        run: cabal build
+        env:
+          LD_LIBRARY_PATH: ${{ steps.setup-onnxruntime.outputs.onnxruntime-libdir }}
+
+      - name: 🧪 Test Haskell package
+        run: cabal test
+        env:
+          LD_LIBRARY_PATH: ${{ steps.setup-onnxruntime.outputs.onnxruntime-libdir }}
