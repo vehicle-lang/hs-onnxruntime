@@ -469,3 +469,44 @@ foreign import capi unsafe
     free(ortEnv);
   }
 }
+
+-------------------------------------------------------------------------------
+-- OrtApi::CreateEnv
+
+-- ortApiCreateEnv ::
+--   OrtApi ->
+--   OrtLoggingLevel ->
+--   String ->
+--   IO OrtEnv
+-- ortApiCreateEnv ortApi log_severity_level logid = do
+--   alloca @(Ptr OrtEnv) $ \outPtr -> do
+--     _ortStatus <-
+--       withCString logid $ \logidPtr -> do
+--         wrapCOrtStatus ortApi
+--           =<< _wrap_OrtApi_CreateEnv
+--             ortApi.ortApiConstPtr
+--             log_severity_level
+--             (ConstPtr logidPtr)
+--             outPtr
+--     wrapCOrtEnv ortApi
+--       =<< peek outPtr
+
+-- foreign import capi unsafe
+--     "Onnxruntime/CApi_hsc.h _wrap_OrtApi_CreateEnv"
+--     _wrap_OrtApi_CreateEnv ::
+--         ConstPtr OrtApi ->
+--         OrtLoggingLevel ->
+--         ConstPtr CChar ->
+--         Ptr (Ptr COrtEnv) ->
+--         IO ()
+
+-- #{def
+--     COrtStatus* _wrap_OrtApi_CreateEnv(
+--       const OrtApi* ortApi,
+--       OrtLoggingLevel log_severity_level,
+--       const char* logid,
+--       OrtEnv** out
+--     ) {
+--         return ortApi->CreateEnv(log_severity_level, logid, out);
+--     }
+-- }
