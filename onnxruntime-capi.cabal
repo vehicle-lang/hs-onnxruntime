@@ -26,6 +26,7 @@ common language
   if impl(ghc <9.6.1)
     if os(osx)
       ghc-options: -optc=-Wno-incompatible-pointer-types-discards-qualifiers
+
     else
       ghc-options: -optc=-Wno-discarded-qualifiers
 
@@ -35,7 +36,9 @@ library
   other-modules:      Foreign.C.ConstPtr.Compat
   build-tool-depends: hsc2hs:hsc2hs
   hs-source-dirs:     src
-  build-depends:      base >=4.13 && <5
+  build-depends:
+    , base        >=4.13  && <5
+    , bytestring  ^>=0.12
 
   if flag(pkg-config)
     pkgconfig-depends: libonnxruntime >=1.21
