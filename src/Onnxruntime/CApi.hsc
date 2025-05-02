@@ -17,7 +17,7 @@ import GHC.TypeLits (Natural)
 #include <onnxruntime_c_api.h>
 
 -------------------------------------------------------------------------------
--- Ort Api Version
+-- OrtApiVersion
 -------------------------------------------------------------------------------
 
 type OrtApiVersion :: Natural
@@ -35,7 +35,7 @@ ortApiVersion :: OrtApiVersionType
 ortApiVersion = #const ORT_API_VERSION
 
 -------------------------------------------------------------------------------
--- Ort Api Base
+-- OrtApiBase
 -------------------------------------------------------------------------------
 
 {- |
@@ -116,7 +116,7 @@ foreign import capi unsafe
 }
 
 -------------------------------------------------------------------------------
--- Ort Logging Level
+-- OrtLoggingLevel
 -------------------------------------------------------------------------------
 
 {-|
@@ -150,16 +150,16 @@ pattern OrtLoggingLevelError = OrtLoggingLevel ( #{const ORT_LOGGING_LEVEL_ERROR
 pattern OrtLoggingLevelFatal :: OrtLoggingLevel
 pattern OrtLoggingLevelFatal = OrtLoggingLevel ( #{const ORT_LOGGING_LEVEL_FATAL} )
 
-{-# COMPLETE 
-  OrtLoggingLevelVerbose, 
-  OrtLoggingLevelInfo, 
-  OrtLoggingLevelWarning, 
-  OrtLoggingLevelError, 
+{-# COMPLETE
+  OrtLoggingLevelVerbose,
+  OrtLoggingLevelInfo,
+  OrtLoggingLevelWarning,
+  OrtLoggingLevelError,
   OrtLoggingLevelFatal
   #-}
 
 -------------------------------------------------------------------------------
--- Ort Error Code
+-- OrtErrorCode
 -------------------------------------------------------------------------------
 
 {- |
@@ -237,7 +237,7 @@ pattern OrtEpFail = OrtErrorCode ( #{const ORT_EP_FAIL} )
   #-}
 
 -------------------------------------------------------------------------------
--- Ort Api
+-- OrtApi
 -------------------------------------------------------------------------------
 
 newtype
@@ -245,7 +245,7 @@ newtype
     OrtApi = OrtApi { ortApiConstPtr :: ConstPtr OrtApi }
 
 -------------------------------------------------------------------------------
--- Ort Status
+-- OrtStatus
 -------------------------------------------------------------------------------
 
 data
@@ -274,25 +274,25 @@ withOrtStatusPtr ::
 withOrtStatusPtr ortStatus =
   withForeignPtr ortStatus.ortStatusForeignPtr
 
-mkOrtStatus :: 
-  OrtApi -> 
-  Ptr COrtStatus -> 
+wrapCOrtStatus ::
+  OrtApi ->
+  Ptr COrtStatus ->
   IO OrtStatus
-mkOrtStatus ortApi rawOrtStatusPtr = do
-  ortStatusPtr <- _wrap_mkHsOrtStatus ortApi.ortApiConstPtr rawOrtStatusPtr
+wrapCOrtStatus ortApi rawOrtStatusPtr = do
+  ortStatusPtr <- _wrap_COrtStatus ortApi.ortApiConstPtr rawOrtStatusPtr
   ortStatusForeignPtr <- newForeignPtr _wrap_OrtApi_ReleaseStatus ortStatusPtr
   pure $ OrtStatus ortStatusForeignPtr
 
 foreign import capi unsafe
-    "Onnxruntime/CApi_hsc.h _wrap_mkHsOrtStatus"
-    _wrap_mkHsOrtStatus ::
+    "Onnxruntime/CApi_hsc.h _wrap_COrtStatus"
+    _wrap_COrtStatus ::
         ConstPtr OrtApi ->
         Ptr COrtStatus ->
         IO (Ptr OrtStatus)
 
 #{def
-  HsOrtStatus* _wrap_mkHsOrtStatus(
-    const OrtApi* ortApi, 
+  HsOrtStatus* _wrap_COrtStatus(
+    const OrtApi* ortApi,
     COrtStatus* ortStatus
   ) {
     HsOrtStatus *out = malloc(sizeof *out);
@@ -314,20 +314,20 @@ foreign import capi unsafe
   void _wrap_OrtApi_ReleaseStatus(HsOrtStatus* ortStatus) {
     ortStatus->ortApi->ReleaseStatus(ortStatus->ortStatus);
     free(ortStatus);
-  } 
+  }
 }
 
 -------------------------------------------------------------------------------
 -- OrtApi::CreateStatus
 
-ortApiCreateStatus :: 
+ortApiCreateStatus ::
   OrtApi ->
   OrtErrorCode ->
   String ->
-  IO OrtStatus 
+  IO OrtStatus
 ortApiCreateStatus ortApi code msg = do
   withCString msg $ \msgPtr -> do
-    mkOrtStatus ortApi 
+    wrapCOrtStatus ortApi
       =<< _wrap_OrtApi_CreateStatus ortApi.ortApiConstPtr code (ConstPtr msgPtr)
 
 foreign import capi unsafe
@@ -340,7 +340,7 @@ foreign import capi unsafe
 
 #{def
     COrtStatus* _wrap_OrtApi_CreateStatus(
-      const OrtApi* ortApi, 
+      const OrtApi* ortApi,
       OrtErrorCode code,
       const char* msg
     ) {
@@ -351,7 +351,7 @@ foreign import capi unsafe
 -------------------------------------------------------------------------------
 -- OrtApi::GetErrorCode
 
-ortApiGetErrorCode :: 
+ortApiGetErrorCode ::
   OrtStatus ->
   IO OrtErrorCode
 ortApiGetErrorCode ortStatus =
@@ -365,7 +365,7 @@ foreign import capi unsafe
 
 #{def
     OrtErrorCode _wrap_OrtApi_GetErrorCode(
-      HsOrtStatus* ortStatus 
+      HsOrtStatus* ortStatus
     ) {
         return ortStatus->ortApi->GetErrorCode(ortStatus->ortStatus);
     }
@@ -374,7 +374,7 @@ foreign import capi unsafe
 -------------------------------------------------------------------------------
 -- OrtApi::GetErrorMessage
 
-ortApiGetErrorMessage :: 
+ortApiGetErrorMessage ::
   OrtStatus ->
   IO String
 ortApiGetErrorMessage ortStatus =
@@ -390,76 +390,82 @@ foreign import capi unsafe
 
 #{def
     const char* _wrap_OrtApi_GetErrorMessage(
-      HsOrtStatus* ortStatus 
+      HsOrtStatus* ortStatus
     ) {
         return ortStatus->ortApi->GetErrorMessage(ortStatus->ortStatus);
     }
 }
 
--------------------------------------------------------------------------------
--- Ort Env
--------------------------------------------------------------------------------
-{-
-newtype
-  {-# CTYPE "onnxruntime_c_api.h" "OrtEnv" #-}
-  OrtEnv = OrtEnv { ortEnvForeignPtr :: ForeignPtr OrtEnv }
 
-foreign import capi unsafe
-    "Onnxruntime/CApi_hsc.h _wrap_OrtApi_ReleaseEnv"
-    _wrap_OrtApi_ReleaseEnv ::
-        ConstPtr OrtApiBase ->
-        OrtApiVersionType ->
-        IO (ConstPtr OrtApi)
+-------------------------------------------------------------------------------
+-- OrtEnv
+-------------------------------------------------------------------------------
+
+data
+  {-# CTYPE "onnxruntime_c_api.h" "COrtEnv" #-}
+  COrtEnv
 
 #{def
-    const OrtApi* _wrap_OrtApi_ReleaseEnv(const OrtApi* ortApi, ??? env) {
-        return ortApi->ReleaseEnv(env);
-    }
+  typedef OrtEnv COrtEnv;
+}
+
+newtype
+  {-# CTYPE "Onnxruntime/CApi_hsc.h" "HsOrtEnv" #-}
+  OrtEnv = OrtEnv { ortEnvForeignPtr :: ForeignPtr OrtEnv }
+
+#{def
+  typedef struct HsOrtEnv {
+    const OrtApi* ortApi;
+    COrtEnv* ortEnv;
+  } HsOrtEnv;
+}
+
+withOrtEnvPtr ::
+  OrtEnv ->
+  (Ptr OrtEnv -> IO a) ->
+  IO a
+withOrtEnvPtr ortEnv =
+  withForeignPtr ortEnv.ortEnvForeignPtr
+
+wrapCOrtEnv ::
+  OrtApi ->
+  Ptr COrtEnv ->
+  IO OrtEnv
+wrapCOrtEnv ortApi rawOrtEnvPtr = do
+  ortEnvPtr <- _wrap_COrtEnv ortApi.ortApiConstPtr rawOrtEnvPtr
+  ortEnvForeignPtr <- newForeignPtr _wrap_OrtApi_ReleaseEnv ortEnvPtr
+  pure $ OrtEnv ortEnvForeignPtr
+
+foreign import capi unsafe
+    "Onnxruntime/CApi_hsc.h _wrap_COrtEnv"
+    _wrap_COrtEnv ::
+        ConstPtr OrtApi ->
+        Ptr COrtEnv ->
+        IO (Ptr OrtEnv)
+
+#{def
+  HsOrtEnv* _wrap_COrtEnv(
+    const OrtApi* ortApi,
+    COrtEnv* ortEnv
+  ) {
+    HsOrtEnv *out = malloc(sizeof *out);
+    out->ortApi = ortApi;
+    out->ortEnv = ortEnv;
+    return out;
+  }
 }
 
 foreign import capi unsafe
-  "onnxruntime_c_api.h &OrtReleaseEnv"
-  ortReleaseEnvFunPtr ::
-    FunPtr (Ptr OrtEnv -> IO ())
-    -}
-
-{-
-ortApiCreateEnv ::
-    OrtApi ->
-    OrtLoggingLevel ->
-    String ->
-    IO OrtEnv
-ortApiCreateEnv ortApi log_severity_level logid = do
-  withCString logid $ \logidPtr -> do
-    alloca $ \outPtr -> do
-      ortStatusPtr <- _wrap_OrtApi_CreateEnv 
-        ortApi.ortApiConstPtr 
-        log_severity_level   
-        (ConstPtr logidPtr)
-        outPtr
-      
-      ortStatus <- newOrtStatus ortStatusPtr
-
-      ortEnvPtr <- peek outPtr
-      ortEnvForeignPtr <- newForeignPtr ortReleaseEnvFunPtr ortEnvPtr
-      pure $ OrtEnv ortEnvForeignPtr
-
-foreign import capi unsafe
-    "Onnxruntime/CApi_hsc.h _wrap_OrtApi_CreateEnv"
-    _wrap_OrtApi_CreateEnv ::
-        ConstPtr OrtApi ->
-        OrtLoggingLevel ->
-        ConstPtr CChar ->
-        Ptr (Ptr OrtEnv) ->
-        IO (Ptr OrtStatus)
+  "Onnxruntime/CApi_hsc.h &_wrap_OrtApi_ReleaseEnv"
+  _wrap_OrtApi_ReleaseEnv ::
+    FunPtr (
+      Ptr OrtEnv ->
+      IO ()
+    )
 
 #{def
-    const OrtStatus* _wrap_OrtApi_CreateEnv(
-      OrtApi* ortApi,
-      OrtLoggingLevel log_severity_level, 
-      const char* logid,
-      OrtEnv** out
-    ) {
-        return ortApi->CreateEnv(log_severity_level, logid, out);
-    }
-}-}
+  void _wrap_OrtApi_ReleaseEnv(HsOrtEnv* ortEnv) {
+    ortEnv->ortApi->ReleaseEnv(ortEnv->ortEnv);
+    free(ortEnv);
+  }
+}
