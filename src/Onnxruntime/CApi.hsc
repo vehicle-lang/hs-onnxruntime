@@ -22,7 +22,13 @@ import Foreign.C.String
 import GHC.TypeLits (Natural)
 import Text.Printf (printf)
 
+#if __has_include(<onnxruntime_c_api.h>)
 #include <onnxruntime_c_api.h>
+#elif __has_include(<onnxruntime/onnxruntime_c_api.h>)
+#include <onnxruntime/onnxruntime_c_api.h>
+#elif __has_include(<onnxruntime/core/session/onnxruntime_c_api.h>)
+#include <onnxruntime/core/session/onnxruntime_c_api.h>
+#endif
 
 -------------------------------------------------------------------------------
 -- ONNX Runtime: API Base
@@ -1427,19 +1433,20 @@ foreign import capi unsafe
 ortApiCreateEnv ::
   OrtApi ->
   OrtLoggingLevel ->
-  ConstPtr CChar ->
+  String ->
   IO OrtEnv
-ortApiCreateEnv ortApi logSeverityLevel logidConstPtr = do
-  alloca $ \outPtr -> do
-    ortStatusPtr <-
-      _wrap_OrtApi_CreateEnv
-        ortApi.ortApiConstPtr
-        logSeverityLevel
-        logidConstPtr
-        outPtr
-    handleOrtStatus ortApi ortStatusPtr $ do
-      wrapCOrtEnv ortApi
-        =<< peek outPtr
+ortApiCreateEnv ortApi logSeverityLevel logid = do
+  withCString logid $ \logidPtr -> do
+    alloca $ \outPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_CreateEnv
+          ortApi.ortApiConstPtr
+          logSeverityLevel
+          (ConstPtr logidPtr) -- NOTE: This is unsafe.
+          outPtr
+      handleOrtStatus ortApi ortStatusPtr $ do
+        wrapCOrtEnv ortApi
+          =<< peek outPtr
 
 foreign import capi unsafe
   "Onnxruntime/CApi_hsc.h _wrap_OrtApi_CreateEnv"
