@@ -24,7 +24,7 @@ runs:
         brew install onnxruntime
         ONNXRUNTIME_VERSION=$(brew info onnxruntime | head -1 | cut -d' ' -f4)
         echo "ONNXRUNTIME_LIBDIR=$(brew --cellar)/onnxruntime/$ONNXRUNTIME_VERSION/lib" >> $GITHUB_ENV
-        echo "ONNXRUNTIME_INCLUDEDIR=$(brew --cellar)/onnxruntime/$ONNXRUNTIME_VERSION/include" >> $GITHUB_ENV
+        echo "ONNXRUNTIME_INCLUDEDIR=$(brew --cellar)/onnxruntime/$ONNXRUNTIME_VERSION/include/onnxruntime" >> $GITHUB_ENV
         echo "ONNXRUNTIME_PKG_CONFIG_PATH=$(brew --cellar)/onnxruntime/$ONNXRUNTIME_VERSION/lib/pkgconfig" >> $GITHUB_ENV
       shell: sh
 
