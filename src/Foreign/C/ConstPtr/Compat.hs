@@ -2,6 +2,7 @@
 #if MIN_VERSION_base(4,18,0)
 #else
 {-# LANGUAGE RoleAnnotations #-}
+{-# LANGUAGE DerivingStrategies #-}
 #endif
 {-| The t'ConstPtr' type was introduced in GHC 9.6.1. However, it is required
   when writing C bindings to a function involving the const annotation using
@@ -24,10 +25,12 @@ module Foreign.C.ConstPtr.Compat (
 import Foreign.C.ConstPtr (ConstPtr(..))
 #else
 import Foreign.Ptr (Ptr)
+import Foreign (Storable)
 
 type role ConstPtr phantom
 newtype ConstPtr a = ConstPtr { unConstPtr :: Ptr a }
-    deriving (Eq, Ord)
+    deriving stock (Eq, Ord)
+    deriving newtype (Storable)
 
 -- doesn't use record syntax
 instance Show (ConstPtr a) where
