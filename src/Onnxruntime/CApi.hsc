@@ -6,15 +6,22 @@
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeData #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Onnxruntime.CApi where
 
-import Control.Exception (Exception (..), finally, throwIO)
+import Control.Exception (Exception (..), assert, finally, throwIO)
+import Control.Monad (unless)
 import Data.ByteString (ByteString)
-import Data.ByteString.Unsafe qualified as BSU
+import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as BSC
 import Data.Coerce (coerce)
 import Data.Kind (Type)
+import Data.Proxy (Proxy (..))
+import Data.Vector.Storable (Vector)
+import Data.Vector.Storable qualified as VS
+import Data.Void (Void)
 import Foreign
 import Foreign.C.ConstPtr.Compat (ConstPtr (..))
 import Foreign.C.Types
@@ -136,46 +143,34 @@ foreign import capi unsafe
 -- ONNX Runtime: Primitive Types
 -------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
--- OrtLoggingLevel
+-- NOTE: This section contains those types which are passed by value.
+-- NOTE: The definitions in this section are SORTED ALPHABETICALLY.
 
-{-|
-> typedef enum OrtLoggingLevel {
->   ORT_LOGGING_LEVEL_VERBOSE,  ///< Verbose informational messages (least severe).
->   ORT_LOGGING_LEVEL_INFO,     ///< Informational messages.
->   ORT_LOGGING_LEVEL_WARNING,  ///< Warning messages.
->   ORT_LOGGING_LEVEL_ERROR,    ///< Error messages.
->   ORT_LOGGING_LEVEL_FATAL,    ///< Fatal error messages (most severe).
-> } OrtLoggingLevel;
+-------------------------------------------------------------------------------
+-- ExecutionMode
+
+{- |
+> typedef enum ExecutionMode {
+>   ORT_SEQUENTIAL = 0,
+>   ORT_PARALLEL = 1,
+> } ExecutionMode;
 -}
 newtype
-  {-# CTYPE "onnxruntime_c_api.h" "OrtLoggingLevel" #-}
-  OrtLoggingLevel = OrtLoggingLevel
-    { unOrtLoggingLevel :: #{type OrtLoggingLevel}
+  {-# CTYPE "onnxruntime_c_api.h" "ExecutionMode" #-}
+  ExecutionMode = ExecutionMode
+    { unExecutionMode :: #{type ExecutionMode}
     }
     deriving (Eq, Show)
 
-pattern OrtLoggingLevelVerbose :: OrtLoggingLevel
-pattern OrtLoggingLevelVerbose = OrtLoggingLevel ( #{const ORT_LOGGING_LEVEL_VERBOSE} )
+pattern OrtSequential :: ExecutionMode
+pattern OrtSequential = ExecutionMode ( #{const ORT_SEQUENTIAL} )
 
-pattern OrtLoggingLevelInfo :: OrtLoggingLevel
-pattern OrtLoggingLevelInfo = OrtLoggingLevel ( #{const ORT_LOGGING_LEVEL_INFO} )
-
-pattern OrtLoggingLevelWarning :: OrtLoggingLevel
-pattern OrtLoggingLevelWarning = OrtLoggingLevel ( #{const ORT_LOGGING_LEVEL_WARNING} )
-
-pattern OrtLoggingLevelError :: OrtLoggingLevel
-pattern OrtLoggingLevelError = OrtLoggingLevel ( #{const ORT_LOGGING_LEVEL_ERROR} )
-
-pattern OrtLoggingLevelFatal :: OrtLoggingLevel
-pattern OrtLoggingLevelFatal = OrtLoggingLevel ( #{const ORT_LOGGING_LEVEL_FATAL} )
+pattern OrtParallel :: ExecutionMode
+pattern OrtParallel = ExecutionMode ( #{const ORT_PARALLEL} )
 
 {-# COMPLETE
-  OrtLoggingLevelVerbose,
-  OrtLoggingLevelInfo,
-  OrtLoggingLevelWarning,
-  OrtLoggingLevelError,
-  OrtLoggingLevelFatal
+  OrtSequential,
+  OrtParallel
   #-}
 
 -------------------------------------------------------------------------------
@@ -217,33 +212,6 @@ pattern OrtEnableAll = GraphOptimizationLevel ( #{const ORT_ENABLE_ALL} )
   #-}
 
 -------------------------------------------------------------------------------
--- ExecutionMode
-
-{- |
-> typedef enum ExecutionMode {
->   ORT_SEQUENTIAL = 0,
->   ORT_PARALLEL = 1,
-> } ExecutionMode;
--}
-newtype
-  {-# CTYPE "onnxruntime_c_api.h" "ExecutionMode" #-}
-  ExecutionMode = ExecutionMode
-    { unExecutionMode :: #{type ExecutionMode}
-    }
-    deriving (Eq, Show)
-
-pattern OrtSequential :: ExecutionMode
-pattern OrtSequential = ExecutionMode ( #{const ORT_SEQUENTIAL} )
-
-pattern OrtParallel :: ExecutionMode
-pattern OrtParallel = ExecutionMode ( #{const ORT_PARALLEL} )
-
-{-# COMPLETE
-  OrtSequential,
-  OrtParallel
-  #-}
-
--------------------------------------------------------------------------------
 -- ONNXTensorElementDataType
 
 {- |
@@ -278,102 +246,201 @@ newtype
   ONNXTensorElementDataType = ONNXTensorElementDataType
     { unONNXTensorElementDataType :: #{type ONNXTensorElementDataType}
     }
-    deriving (Eq, Show)
+    deriving (Eq)
 
-pattern OnnxTensorElementDataTypeUndefined :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeUndefined = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_UNDEFINED} )
+pattern ONNXTensorElementDataTypeUndefined :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeUndefined = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_UNDEFINED} )
 
-pattern OnnxTensorElementDataTypeFloat :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeFloat = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT} )
+pattern ONNXTensorElementDataTypeFloat :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeFloat = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT} )
 
-pattern OnnxTensorElementDataTypeUint8 :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeUint8 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8} )
+pattern ONNXTensorElementDataTypeUint8 :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeUint8 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8} )
 
-pattern OnnxTensorElementDataTypeInt8 :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeInt8 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_INT8} )
+pattern ONNXTensorElementDataTypeInt8 :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeInt8 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_INT8} )
 
-pattern OnnxTensorElementDataTypeUint16 :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeUint16 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT16} )
+pattern ONNXTensorElementDataTypeUint16 :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeUint16 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT16} )
 
-pattern OnnxTensorElementDataTypeInt16 :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeInt16 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_INT16} )
+pattern ONNXTensorElementDataTypeInt16 :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeInt16 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_INT16} )
 
-pattern OnnxTensorElementDataTypeInt32 :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeInt32 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32} )
+pattern ONNXTensorElementDataTypeInt32 :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeInt32 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32} )
 
-pattern OnnxTensorElementDataTypeInt64 :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeInt64 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_INT64} )
+pattern ONNXTensorElementDataTypeInt64 :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeInt64 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_INT64} )
 
-pattern OnnxTensorElementDataTypeString :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeString = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_STRING} )
+pattern ONNXTensorElementDataTypeString :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeString = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_STRING} )
 
-pattern OnnxTensorElementDataTypeBool :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeBool = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_BOOL} )
+pattern ONNXTensorElementDataTypeBool :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeBool = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_BOOL} )
 
-pattern OnnxTensorElementDataTypeFloat16 :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeFloat16 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT16} )
+pattern ONNXTensorElementDataTypeFloat16 :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeFloat16 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT16} )
 
-pattern OnnxTensorElementDataTypeDouble :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeDouble = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_DOUBLE} )
+pattern ONNXTensorElementDataTypeDouble :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeDouble = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_DOUBLE} )
 
-pattern OnnxTensorElementDataTypeUint32 :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeUint32 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT32} )
+pattern ONNXTensorElementDataTypeUint32 :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeUint32 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT32} )
 
-pattern OnnxTensorElementDataTypeUint64 :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeUint64 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT64} )
+pattern ONNXTensorElementDataTypeUint64 :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeUint64 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT64} )
 
-pattern OnnxTensorElementDataTypeComplex64 :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeComplex64 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_COMPLEX64} )
+pattern ONNXTensorElementDataTypeComplex64 :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeComplex64 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_COMPLEX64} )
 
-pattern OnnxTensorElementDataTypeComplex128 :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeComplex128 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_COMPLEX128} )
+pattern ONNXTensorElementDataTypeComplex128 :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeComplex128 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_COMPLEX128} )
 
-pattern OnnxTensorElementDataTypeBfloat16 :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeBfloat16 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_BFLOAT16} )
+pattern ONNXTensorElementDataTypeBfloat16 :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeBfloat16 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_BFLOAT16} )
 
-pattern OnnxTensorElementDataTypeFloat8e4m3fn :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeFloat8e4m3fn = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT8E4M3FN} )
+pattern ONNXTensorElementDataTypeFloat8e4m3fn :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeFloat8e4m3fn = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT8E4M3FN} )
 
-pattern OnnxTensorElementDataTypeFloat8e4m3fnuz :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeFloat8e4m3fnuz = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT8E4M3FNUZ} )
+pattern ONNXTensorElementDataTypeFloat8e4m3fnuz :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeFloat8e4m3fnuz = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT8E4M3FNUZ} )
 
-pattern OnnxTensorElementDataTypeFloat8e5m2 :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeFloat8e5m2 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT8E5M2} )
+pattern ONNXTensorElementDataTypeFloat8e5m2 :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeFloat8e5m2 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT8E5M2} )
 
-pattern OnnxTensorElementDataTypeFloat8e5m2fnuz :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeFloat8e5m2fnuz = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT8E5M2FNUZ} )
+pattern ONNXTensorElementDataTypeFloat8e5m2fnuz :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeFloat8e5m2fnuz = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT8E5M2FNUZ} )
 
-pattern OnnxTensorElementDataTypeUint4 :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeUint4 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT4} )
+pattern ONNXTensorElementDataTypeUint4 :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeUint4 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT4} )
 
-pattern OnnxTensorElementDataTypeInt4 :: ONNXTensorElementDataType
-pattern OnnxTensorElementDataTypeInt4 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_INT4} )
+pattern ONNXTensorElementDataTypeInt4 :: ONNXTensorElementDataType
+pattern ONNXTensorElementDataTypeInt4 = ONNXTensorElementDataType ( #{const ONNX_TENSOR_ELEMENT_DATA_TYPE_INT4} )
 
 {-# COMPLETE
-  OnnxTensorElementDataTypeUndefined,
-  OnnxTensorElementDataTypeFloat,
-  OnnxTensorElementDataTypeUint8,
-  OnnxTensorElementDataTypeInt8,
-  OnnxTensorElementDataTypeUint16,
-  OnnxTensorElementDataTypeInt16,
-  OnnxTensorElementDataTypeInt32,
-  OnnxTensorElementDataTypeInt64,
-  OnnxTensorElementDataTypeString,
-  OnnxTensorElementDataTypeBool,
-  OnnxTensorElementDataTypeFloat16,
-  OnnxTensorElementDataTypeDouble,
-  OnnxTensorElementDataTypeUint32,
-  OnnxTensorElementDataTypeUint64,
-  OnnxTensorElementDataTypeComplex64,
-  OnnxTensorElementDataTypeComplex128,
-  OnnxTensorElementDataTypeBfloat16,
-  OnnxTensorElementDataTypeFloat8e4m3fn,
-  OnnxTensorElementDataTypeFloat8e4m3fnuz,
-  OnnxTensorElementDataTypeFloat8e5m2,
-  OnnxTensorElementDataTypeFloat8e5m2fnuz,
-  OnnxTensorElementDataTypeUint4,
-  OnnxTensorElementDataTypeInt4
+  ONNXTensorElementDataTypeUndefined,
+  ONNXTensorElementDataTypeFloat,
+  ONNXTensorElementDataTypeUint8,
+  ONNXTensorElementDataTypeInt8,
+  ONNXTensorElementDataTypeUint16,
+  ONNXTensorElementDataTypeInt16,
+  ONNXTensorElementDataTypeInt32,
+  ONNXTensorElementDataTypeInt64,
+  ONNXTensorElementDataTypeString,
+  ONNXTensorElementDataTypeBool,
+  ONNXTensorElementDataTypeFloat16,
+  ONNXTensorElementDataTypeDouble,
+  ONNXTensorElementDataTypeUint32,
+  ONNXTensorElementDataTypeUint64,
+  ONNXTensorElementDataTypeComplex64,
+  ONNXTensorElementDataTypeComplex128,
+  ONNXTensorElementDataTypeBfloat16,
+  ONNXTensorElementDataTypeFloat8e4m3fn,
+  ONNXTensorElementDataTypeFloat8e4m3fnuz,
+  ONNXTensorElementDataTypeFloat8e5m2,
+  ONNXTensorElementDataTypeFloat8e5m2fnuz,
+  ONNXTensorElementDataTypeUint4,
+  ONNXTensorElementDataTypeInt4
   #-}
+
+instance Show ONNXTensorElementDataType where
+  show = \case
+    ONNXTensorElementDataTypeUndefined -> "ONNXTensorElementDataTypeUndefined"
+    ONNXTensorElementDataTypeFloat -> "ONNXTensorElementDataTypeFloat"
+    ONNXTensorElementDataTypeUint8 -> "ONNXTensorElementDataTypeUint8"
+    ONNXTensorElementDataTypeInt8 -> "ONNXTensorElementDataTypeInt8"
+    ONNXTensorElementDataTypeUint16 -> "ONNXTensorElementDataTypeUint16"
+    ONNXTensorElementDataTypeInt16 -> "ONNXTensorElementDataTypeInt16"
+    ONNXTensorElementDataTypeInt32 -> "ONNXTensorElementDataTypeInt32"
+    ONNXTensorElementDataTypeInt64 -> "ONNXTensorElementDataTypeInt64"
+    ONNXTensorElementDataTypeString -> "ONNXTensorElementDataTypeString"
+    ONNXTensorElementDataTypeBool -> "ONNXTensorElementDataTypeBool"
+    ONNXTensorElementDataTypeFloat16 -> "ONNXTensorElementDataTypeFloat16"
+    ONNXTensorElementDataTypeDouble -> "ONNXTensorElementDataTypeDouble"
+    ONNXTensorElementDataTypeUint32 -> "ONNXTensorElementDataTypeUint32"
+    ONNXTensorElementDataTypeUint64 -> "ONNXTensorElementDataTypeUint64"
+    ONNXTensorElementDataTypeComplex64 -> "ONNXTensorElementDataTypeComplex64"
+    ONNXTensorElementDataTypeComplex128 -> "ONNXTensorElementDataTypeComplex128"
+    ONNXTensorElementDataTypeBfloat16 -> "ONNXTensorElementDataTypeBfloat16"
+    ONNXTensorElementDataTypeFloat8e4m3fn -> "ONNXTensorElementDataTypeFloat8e4m3fn"
+    ONNXTensorElementDataTypeFloat8e4m3fnuz -> "ONNXTensorElementDataTypeFloat8e4m3fnuz"
+    ONNXTensorElementDataTypeFloat8e5m2 -> "ONNXTensorElementDataTypeFloat8e5m2"
+    ONNXTensorElementDataTypeFloat8e5m2fnuz -> "ONNXTensorElementDataTypeFloat8e5m2fnuz"
+    ONNXTensorElementDataTypeUint4 -> "ONNXTensorElementDataTypeUint4"
+    ONNXTensorElementDataTypeInt4 -> "ONNXTensorElementDataTypeInt4"
+
+class Storable a => IsONNXTensorElementDataType a where
+  getONNXTensorElementDataType :: Proxy a -> ONNXTensorElementDataType
+
+instance IsONNXTensorElementDataType Float where
+  getONNXTensorElementDataType _ = ONNXTensorElementDataTypeFloat
+
+instance IsONNXTensorElementDataType Double where
+  getONNXTensorElementDataType _ = ONNXTensorElementDataTypeDouble
+
+instance IsONNXTensorElementDataType Int8 where
+  getONNXTensorElementDataType _ = ONNXTensorElementDataTypeInt8
+
+instance IsONNXTensorElementDataType Int16 where
+  getONNXTensorElementDataType _ = ONNXTensorElementDataTypeInt16
+
+instance IsONNXTensorElementDataType Int32 where
+  getONNXTensorElementDataType _ = ONNXTensorElementDataTypeInt32
+
+instance IsONNXTensorElementDataType Int64 where
+  getONNXTensorElementDataType _ = ONNXTensorElementDataTypeInt64
+
+instance IsONNXTensorElementDataType Word8 where
+  getONNXTensorElementDataType _ = ONNXTensorElementDataTypeUint8
+
+instance IsONNXTensorElementDataType Word16 where
+  getONNXTensorElementDataType _ = ONNXTensorElementDataTypeUint16
+
+instance IsONNXTensorElementDataType Word32 where
+  getONNXTensorElementDataType _ = ONNXTensorElementDataTypeUint32
+
+instance IsONNXTensorElementDataType Word64 where
+  getONNXTensorElementDataType _ = ONNXTensorElementDataTypeUint64
+
+-- NOTE: The following 'ONNXTensorElementDataType' types are unsupported:
+--
+-- [@ONNXTensorElementDataTypeUndefined@]:
+--   Unsupported as input format for obvious reasons.
+-- [@ONNXTensorElementDataTypeString@]:
+--   Maps to C++ type std::string
+-- [@ONNXTensorElementDataTypeFloat16@]:
+--   Maps to float16_t
+-- [@ONNXTensorElementDataTypeComplex64@]:
+--   Maps to C++ type std::complex<float32>
+-- [@ONNXTensorElementDataTypeComplex128@]:
+--   Maps to C++ type std::complex<float64>
+-- [@ONNXTensorElementDataTypeBfloat16@]:
+--   Maps to non-IEEE floating-point format based on IEEE754 single-precision.
+-- [@ONNXTensorElementDataTypeFloat8e4m3fn@]:
+--   Maps to non-IEEE floating-point format based on IEEE754 single-precision.
+-- [@ONNXTensorElementDataTypeFloat8e4m3fnuz@]:
+--   Maps to non-IEEE floating-point format based on IEEE754 single-precision.
+-- [@ONNXTensorElementDataTypeFloat8e5m2@]:
+--   Maps to non-IEEE floating-point format based on IEEE754 single-precision.
+-- [@ONNXTensorElementDataTypeFloat8e5m2fnuz@]:
+--   Maps to non-IEEE floating-point format based on IEEE754 single-precision.
+-- [@ONNXTensorElementDataTypeUint4@]:
+--   Maps to a pair of packed uint4 values.
+-- [@ONNXTensorElementDataTypeInt4@]:
+--   Maps to a pair of packed int4 values.
+
+-- | Type-level tag for supported 'ONNXTensorElementDataType' types.
+type data ONNXTensorElementDataTypeTag
+  = ONNXTensorElementDataTypeTagFloat
+  | ONNXTensorElementDataTypeTagDouble
+  | ONNXTensorElementDataTypeTagInt8
+  | ONNXTensorElementDataTypeTagInt16
+  | ONNXTensorElementDataTypeTagInt32
+  | ONNXTensorElementDataTypeTagInt64
+  | ONNXTensorElementDataTypeTagUint8
+  | ONNXTensorElementDataTypeTagUint16
+  | ONNXTensorElementDataTypeTagUint32
+  | ONNXTensorElementDataTypeTagUint64
 
 -------------------------------------------------------------------------------
 -- ONNXType
@@ -389,6 +456,89 @@ pattern OnnxTensorElementDataTypeInt4 = ONNXTensorElementDataType ( #{const ONNX
 >   ONNX_TYPE_OPTIONAL
 > } ONNXType;
 -}
+newtype
+  {-# CTYPE "onnxruntime_c_api.h" "ONNXType" #-}
+  ONNXType = ONNXType
+    { unONNXType :: #{type ONNXType}
+    }
+    deriving (Eq)
+
+pattern ONNXTypeUnknown :: ONNXType
+pattern ONNXTypeUnknown = ONNXType ( #{const ONNX_TYPE_UNKNOWN} )
+
+pattern ONNXTypeTensor :: ONNXType
+pattern ONNXTypeTensor = ONNXType ( #{const ONNX_TYPE_TENSOR} )
+
+pattern ONNXTypeSequence :: ONNXType
+pattern ONNXTypeSequence = ONNXType ( #{const ONNX_TYPE_SEQUENCE} )
+
+pattern ONNXTypeMap :: ONNXType
+pattern ONNXTypeMap = ONNXType ( #{const ONNX_TYPE_MAP} )
+
+pattern ONNXTypeOpaque :: ONNXType
+pattern ONNXTypeOpaque = ONNXType ( #{const ONNX_TYPE_OPAQUE} )
+
+pattern ONNXTypeSparseTensor :: ONNXType
+pattern ONNXTypeSparseTensor = ONNXType ( #{const ONNX_TYPE_SPARSETENSOR} )
+
+pattern ONNXTypeOptional :: ONNXType
+pattern ONNXTypeOptional = ONNXType ( #{const ONNX_TYPE_OPTIONAL} )
+
+{-# COMPLETE
+  ONNXTypeUnknown,
+  ONNXTypeTensor,
+  ONNXTypeSequence,
+  ONNXTypeMap,
+  ONNXTypeOpaque,
+  ONNXTypeSparseTensor,
+  ONNXTypeOptional
+  #-}
+
+instance Show ONNXType where
+  show = \case
+    ONNXTypeUnknown -> "ONNXTypeUnknown"
+    ONNXTypeTensor -> "ONNXTypeTensor"
+    ONNXTypeSequence -> "ONNXTypeSequence"
+    ONNXTypeMap -> "ONNXTypeMap"
+    ONNXTypeOpaque -> "ONNXTypeOpaque"
+    ONNXTypeSparseTensor -> "ONNXTypeSparseTensor"
+    ONNXTypeOptional -> "ONNXTypeOptional"
+
+-- | Type-level tag for supported 'ONNXType' types.
+type data ONNXTypeTag
+  = ONNXTypeTagTensor ONNXTensorElementDataTypeTag
+
+-------------------------------------------------------------------------------
+-- OrtAllocatorType
+
+{- |
+> typedef enum OrtAllocatorType {
+>   OrtInvalidAllocator = -1,
+>   OrtDeviceAllocator = 0,
+>   OrtArenaAllocator = 1
+> } OrtAllocatorType;
+-}
+newtype
+  {-# CTYPE "onnxruntime_c_api.h" "OrtAllocatorType" #-}
+  OrtAllocatorType = OrtAllocatorType
+    { unOrtAllocatorType :: #{type OrtAllocatorType}
+    }
+    deriving (Eq, Show)
+
+pattern OrtInvalidAllocator :: OrtAllocatorType
+pattern OrtInvalidAllocator = OrtAllocatorType ( #{const OrtInvalidAllocator} )
+
+pattern OrtDeviceAllocator :: OrtAllocatorType
+pattern OrtDeviceAllocator = OrtAllocatorType ( #{const OrtDeviceAllocator} )
+
+pattern OrtArenaAllocator :: OrtAllocatorType
+pattern OrtArenaAllocator = OrtAllocatorType ( #{const OrtArenaAllocator} )
+
+{-# COMPLETE
+  OrtInvalidAllocator,
+  OrtDeviceAllocator,
+  OrtArenaAllocator
+  #-}
 
 -------------------------------------------------------------------------------
 -- OrtErrorCode
@@ -467,9 +617,106 @@ pattern OrtEpFail = OrtErrorCode ( #{const ORT_EP_FAIL} )
   OrtEpFail
   #-}
 
+instance Exception OrtErrorCode where
+  displayException = \case
+    OrtOk -> "ORT_OK"
+    OrtFail -> "ORT_FAIL"
+    OrtInvalidArgument -> "ORT_INVALID_ARGUMENT"
+    OrtNoSuchfile -> "ORT_NO_SUCHFILE"
+    OrtNoModel -> "ORT_NO_MODEL"
+    OrtEngineError -> "ORT_ENGINE_ERROR"
+    OrtRuntimeException -> "ORT_RUNTIME_EXCEPTION"
+    OrtInvalidProtobuf -> "ORT_INVALID_PROTOBUF"
+    OrtModelLoaded -> "ORT_MODEL_LOADED"
+    OrtNotImplemented -> "ORT_NOT_IMPLEMENTED"
+    OrtInvalidGraph -> "ORT_INVALID_GRAPH"
+    OrtEpFail -> "ORT_EP_FAIL"
+
+-------------------------------------------------------------------------------
+-- OrtLoggingLevel
+
+{-|
+> typedef enum OrtLoggingLevel {
+>   ORT_LOGGING_LEVEL_VERBOSE,  ///< Verbose informational messages (least severe).
+>   ORT_LOGGING_LEVEL_INFO,     ///< Informational messages.
+>   ORT_LOGGING_LEVEL_WARNING,  ///< Warning messages.
+>   ORT_LOGGING_LEVEL_ERROR,    ///< Error messages.
+>   ORT_LOGGING_LEVEL_FATAL,    ///< Fatal error messages (most severe).
+> } OrtLoggingLevel;
+-}
+newtype
+  {-# CTYPE "onnxruntime_c_api.h" "OrtLoggingLevel" #-}
+  OrtLoggingLevel = OrtLoggingLevel
+    { unOrtLoggingLevel :: #{type OrtLoggingLevel}
+    }
+    deriving (Eq, Show)
+
+pattern OrtLoggingLevelVerbose :: OrtLoggingLevel
+pattern OrtLoggingLevelVerbose = OrtLoggingLevel ( #{const ORT_LOGGING_LEVEL_VERBOSE} )
+
+pattern OrtLoggingLevelInfo :: OrtLoggingLevel
+pattern OrtLoggingLevelInfo = OrtLoggingLevel ( #{const ORT_LOGGING_LEVEL_INFO} )
+
+pattern OrtLoggingLevelWarning :: OrtLoggingLevel
+pattern OrtLoggingLevelWarning = OrtLoggingLevel ( #{const ORT_LOGGING_LEVEL_WARNING} )
+
+pattern OrtLoggingLevelError :: OrtLoggingLevel
+pattern OrtLoggingLevelError = OrtLoggingLevel ( #{const ORT_LOGGING_LEVEL_ERROR} )
+
+pattern OrtLoggingLevelFatal :: OrtLoggingLevel
+pattern OrtLoggingLevelFatal = OrtLoggingLevel ( #{const ORT_LOGGING_LEVEL_FATAL} )
+
+{-# COMPLETE
+  OrtLoggingLevelVerbose,
+  OrtLoggingLevelInfo,
+  OrtLoggingLevelWarning,
+  OrtLoggingLevelError,
+  OrtLoggingLevelFatal
+  #-}
+
+-------------------------------------------------------------------------------
+-- OrtMemType
+
+{- |
+> typedef enum OrtMemType {
+>   OrtMemTypeCPUInput = -2,
+>   OrtMemTypeCPUOutput = -1,
+>   OrtMemTypeCPU = OrtMemTypeCPUOutput,
+>   OrtMemTypeDefault = 0,
+> } OrtMemType;
+-}
+newtype
+  {-# CTYPE "onnxruntime_c_api.h" "OrtMemType" #-}
+  OrtMemType = OrtMemType
+    { unOrtMemType :: #{type OrtMemType}
+    }
+    deriving (Eq, Show)
+
+pattern OrtMemTypeCPUInput :: OrtMemType
+pattern OrtMemTypeCPUInput = OrtMemType ( #{const OrtMemTypeCPUInput} )
+
+pattern OrtMemTypeCPUOutput :: OrtMemType
+pattern OrtMemTypeCPUOutput = OrtMemType ( #{const OrtMemTypeCPUOutput} )
+
+pattern OrtMemTypeCPU :: OrtMemType
+pattern OrtMemTypeCPU = OrtMemType ( #{const OrtMemTypeCPU} )
+
+pattern OrtMemTypeDefault :: OrtMemType
+pattern OrtMemTypeDefault = OrtMemType ( #{const OrtMemTypeDefault} )
+
+{-# COMPLETE
+  OrtMemTypeCPUInput,
+  OrtMemTypeCPUOutput,
+  OrtMemTypeCPU,
+  OrtMemTypeDefault
+  #-}
+
 -------------------------------------------------------------------------------
 -- ONNX Runtime: Types
 -------------------------------------------------------------------------------
+
+-- NOTE: This section contains those types which are passed by reference.
+-- NOTE: The definitions in this section are SORTED ALPHABETICALLY.
 
 -------------------------------------------------------------------------------
 -- OrtApi
@@ -479,7 +726,35 @@ newtype
   OrtApi = OrtApi { ortApiConstPtr :: ConstPtr OrtApi }
 
 class HasOrtApi a where
+  type CType a
   getOrtApi :: a -> IO OrtApi
+  withCTypePtr :: a -> (Ptr (CType a) -> IO b) -> IO b
+
+-- | Marshall a list of ONNX Runtime types as an array of pointers.
+withCTypeArrayLen ::
+  (HasOrtApi a) =>
+  [a] ->
+  (Int -> Ptr (Ptr (CType a)) -> IO b) ->
+  IO b
+withCTypeArrayLen = withArrayLenWith withCTypePtr
+
+-- | Internal helper.
+withCStringArrayLen ::
+  [String] ->
+  (Int -> Ptr CString -> IO a) ->
+  IO a
+withCStringArrayLen = withArrayLenWith withCString
+
+-- | Internal helper.
+withArrayLenWith ::
+  (forall c. a -> (Ptr b -> IO c) -> IO c) ->
+  [a] ->
+  (Int -> Ptr (Ptr b) -> IO r) ->
+  IO r
+withArrayLenWith withPtr xs action = go xs []
+  where
+  go [] acc = withArrayLen (reverse acc) action
+  go (y : ys) acc = withPtr y (\yPtr -> go ys (yPtr : acc))
 
 -------------------------------------------------------------------------------
 -- OrtAllocator
@@ -504,9 +779,11 @@ newtype
 }
 
 instance HasOrtApi OrtAllocator where
+  type CType OrtAllocator = COrtAllocator
   getOrtApi ortAllocator =
     withOrtAllocatorPtr ortAllocator $ \ortAllocatorPtr ->
       OrtApi <$> #{peek HsOrtAllocator, ortApi} ortAllocatorPtr
+  withCTypePtr = withCOrtAllocatorPtr
 
 -- | Internal helper.
 withOrtAllocatorPtr ::
@@ -593,9 +870,11 @@ newtype
 }
 
 instance HasOrtApi OrtEnv where
+  type CType OrtEnv = COrtEnv
   getOrtApi ortEnv =
     withOrtEnvPtr ortEnv $ \ortEnvPtr ->
       OrtApi <$> #{peek HsOrtEnv, ortApi} ortEnvPtr
+  withCTypePtr = withCOrtEnvPtr
 
 -- | Internal helper.
 withOrtEnvPtr ::
@@ -682,9 +961,11 @@ newtype
 }
 
 instance HasOrtApi OrtMapTypeInfo where
+  type CType OrtMapTypeInfo = COrtMapTypeInfo
   getOrtApi ortMapTypeInfo =
     withOrtMapTypeInfoPtr ortMapTypeInfo $ \ortMapTypeInfoPtr ->
       OrtApi <$> #{peek HsOrtMapTypeInfo, ortApi} ortMapTypeInfoPtr
+  withCTypePtr = withCOrtMapTypeInfoPtr
 
 -- | Internal helper.
 withOrtMapTypeInfoPtr ::
@@ -693,6 +974,16 @@ withOrtMapTypeInfoPtr ::
   IO a
 withOrtMapTypeInfoPtr ortMapTypeInfo =
   withForeignPtr ortMapTypeInfo.ortMapTypeInfoForeignPtr
+
+-- | Internal helper.
+withCOrtMapTypeInfoPtr ::
+  OrtMapTypeInfo ->
+  (Ptr COrtMapTypeInfo -> IO a) ->
+  IO a
+withCOrtMapTypeInfoPtr ortMapTypeInfo action =
+  withOrtMapTypeInfoPtr ortMapTypeInfo $ \ortMapTypeInfoPtr -> do
+    cOrtMapTypeInfoPtr <- #{peek HsOrtMapTypeInfo, ortMapTypeInfo} ortMapTypeInfoPtr
+    action cOrtMapTypeInfoPtr
 
 -- | Internal helper.
 wrapCOrtMapTypeInfo ::
@@ -761,9 +1052,11 @@ newtype
 }
 
 instance HasOrtApi OrtMemoryInfo where
+  type CType OrtMemoryInfo = COrtMemoryInfo
   getOrtApi ortMemoryInfo =
     withOrtMemoryInfoPtr ortMemoryInfo $ \ortMemoryInfoPtr ->
       OrtApi <$> #{peek HsOrtMemoryInfo, ortApi} ortMemoryInfoPtr
+  withCTypePtr = withCOrtMemoryInfoPtr
 
 -- | Internal helper.
 withOrtMemoryInfoPtr ::
@@ -772,6 +1065,16 @@ withOrtMemoryInfoPtr ::
   IO a
 withOrtMemoryInfoPtr ortMemoryInfo =
   withForeignPtr ortMemoryInfo.ortMemoryInfoForeignPtr
+
+-- | Internal helper.
+withCOrtMemoryInfoPtr ::
+  OrtMemoryInfo ->
+  (Ptr COrtMemoryInfo -> IO a) ->
+  IO a
+withCOrtMemoryInfoPtr ortMemoryInfo action =
+  withOrtMemoryInfoPtr ortMemoryInfo $ \ortMemoryInfoPtr -> do
+    cOrtMemoryInfoPtr <- #{peek HsOrtMemoryInfo, ortMemoryInfo} ortMemoryInfoPtr
+    action cOrtMemoryInfoPtr
 
 -- | Internal helper.
 wrapCOrtMemoryInfo ::
@@ -840,9 +1143,11 @@ newtype
 }
 
 instance HasOrtApi OrtSession where
+  type CType OrtSession = COrtSession
   getOrtApi ortSession =
     withOrtSessionPtr ortSession $ \ortSessionPtr ->
       OrtApi <$> #{peek HsOrtSession, ortApi} ortSessionPtr
+  withCTypePtr = withCOrtSessionPtr
 
 -- | Internal helper.
 withOrtSessionPtr ::
@@ -851,6 +1156,16 @@ withOrtSessionPtr ::
   IO a
 withOrtSessionPtr ortSession =
   withForeignPtr ortSession.ortSessionForeignPtr
+
+-- | Internal helper.
+withCOrtSessionPtr ::
+  OrtSession ->
+  (Ptr COrtSession -> IO a) ->
+  IO a
+withCOrtSessionPtr ortSession action =
+  withOrtSessionPtr ortSession $ \ortSessionPtr -> do
+    cOrtSessionPtr <- #{peek HsOrtSession, ortSession} ortSessionPtr
+    action cOrtSessionPtr
 
 -- | Internal helper.
 wrapCOrtSession ::
@@ -919,9 +1234,11 @@ newtype
 }
 
 instance HasOrtApi OrtSessionOptions where
+  type CType OrtSessionOptions = COrtSessionOptions
   getOrtApi ortSessionOptions =
     withOrtSessionOptionsPtr ortSessionOptions $ \ortSessionOptionsPtr ->
       OrtApi <$> #{peek HsOrtSessionOptions, ortApi} ortSessionOptionsPtr
+  withCTypePtr = withCOrtSessionOptionsPtr
 
 -- | Internal helper.
 withOrtSessionOptionsPtr ::
@@ -1013,8 +1330,8 @@ data OrtError = OrtError
 
 instance Exception OrtError where
   displayException ortError =
-    printf "ERROR %d: %s"
-      ortError.ortErrorCode.unOrtErrorCode
+    printf "ERROR[%s]: %s"
+      (displayException ortError.ortErrorCode)
       (BSC.unpack ortError.ortErrorMessage)
 
 handleOrtStatus ::
@@ -1022,15 +1339,17 @@ handleOrtStatus ::
   Ptr OrtStatus ->
   IO a ->
   IO a
-handleOrtStatus ortApi ortStatusPtr action = do
-  let actionOrError = do
-        ortErrorCode <- ortApiGetErrorCode ortApi ortStatusPtr
-        if ortErrorCode == OrtOk then action else do
-          ortErrorMessage <- ortApiGetErrorMessage ortApi ortStatusPtr
-          throwIO OrtError {..}
-  let cleanupStatus =
-        _wrap_OrtApi_ReleaseStatus ortApi ortStatusPtr
-  actionOrError `finally` cleanupStatus
+handleOrtStatus ortApi ortStatusPtr action
+  | ortStatusPtr == nullPtr = action
+  | otherwise = do
+    let actionOrError = do
+          ortErrorCode <- ortApiGetErrorCode ortApi ortStatusPtr
+          if ortErrorCode == OrtOk then action else do
+            ortErrorMessage <- ortApiGetErrorMessage ortApi ortStatusPtr
+            throwIO OrtError {..}
+    let cleanupStatus =
+          _wrap_OrtApi_ReleaseStatus ortApi ortStatusPtr
+    actionOrError `finally` cleanupStatus
 
 -------------------------------------------------------------------------------
 -- OrtTensorTypeAndShapeInfo
@@ -1055,9 +1374,11 @@ newtype
 }
 
 instance HasOrtApi OrtTensorTypeAndShapeInfo where
+  type CType OrtTensorTypeAndShapeInfo = COrtTensorTypeAndShapeInfo
   getOrtApi ortTensorTypeAndShapeInfo =
     withOrtTensorTypeAndShapeInfoPtr ortTensorTypeAndShapeInfo $ \ortTensorTypeAndShapeInfoPtr ->
       OrtApi <$> #{peek HsOrtTensorTypeAndShapeInfo, ortApi} ortTensorTypeAndShapeInfoPtr
+  withCTypePtr = withCOrtTensorTypeAndShapeInfoPtr
 
 -- | Internal helper.
 withOrtTensorTypeAndShapeInfoPtr ::
@@ -1066,6 +1387,16 @@ withOrtTensorTypeAndShapeInfoPtr ::
   IO a
 withOrtTensorTypeAndShapeInfoPtr ortTensorTypeAndShapeInfo =
   withForeignPtr ortTensorTypeAndShapeInfo.ortTensorTypeAndShapeInfoForeignPtr
+
+-- | Internal helper.
+withCOrtTensorTypeAndShapeInfoPtr ::
+  OrtTensorTypeAndShapeInfo ->
+  (Ptr COrtTensorTypeAndShapeInfo -> IO a) ->
+  IO a
+withCOrtTensorTypeAndShapeInfoPtr ortTensorTypeAndShapeInfo action =
+  withOrtTensorTypeAndShapeInfoPtr ortTensorTypeAndShapeInfo $ \ortTensorTypeAndShapeInfoPtr -> do
+    cOrtTensorTypeAndShapeInfoPtr <- #{peek HsOrtTensorTypeAndShapeInfo, ortTensorTypeAndShapeInfo} ortTensorTypeAndShapeInfoPtr
+    action cOrtTensorTypeAndShapeInfoPtr
 
 -- | Internal helper.
 wrapCOrtTensorTypeAndShapeInfo ::
@@ -1134,9 +1465,11 @@ newtype
 }
 
 instance HasOrtApi OrtTypeInfo where
+  type CType OrtTypeInfo = COrtTypeInfo
   getOrtApi ortTypeInfo =
     withOrtTypeInfoPtr ortTypeInfo $ \ortTypeInfoPtr ->
       OrtApi <$> #{peek HsOrtTypeInfo, ortApi} ortTypeInfoPtr
+  withCTypePtr = withCOrtTypeInfoPtr
 
 -- | Internal helper.
 withOrtTypeInfoPtr ::
@@ -1145,6 +1478,16 @@ withOrtTypeInfoPtr ::
   IO a
 withOrtTypeInfoPtr ortTypeInfo =
   withForeignPtr ortTypeInfo.ortTypeInfoForeignPtr
+
+-- | Internal helper.
+withCOrtTypeInfoPtr ::
+  OrtTypeInfo ->
+  (Ptr COrtTypeInfo -> IO a) ->
+  IO a
+withCOrtTypeInfoPtr ortTypeInfo action =
+  withOrtTypeInfoPtr ortTypeInfo $ \ortTypeInfoPtr -> do
+    cOrtTypeInfoPtr <- #{peek HsOrtTypeInfo, ortTypeInfo} ortTypeInfoPtr
+    action cOrtTypeInfoPtr
 
 -- | Internal helper.
 wrapCOrtTypeInfo ::
@@ -1213,9 +1556,11 @@ newtype
 }
 
 instance HasOrtApi OrtRunOptions where
+  type CType OrtRunOptions = COrtRunOptions
   getOrtApi ortRunOptions =
     withOrtRunOptionsPtr ortRunOptions $ \ortRunOptionsPtr ->
       OrtApi <$> #{peek HsOrtRunOptions, ortApi} ortRunOptionsPtr
+  withCTypePtr = withCOrtRunOptionsPtr
 
 -- | Internal helper.
 withOrtRunOptionsPtr ::
@@ -1302,9 +1647,11 @@ newtype
 }
 
 instance HasOrtApi OrtValue where
+  type CType OrtValue = COrtValue
   getOrtApi ortValue =
     withOrtValuePtr ortValue $ \ortValuePtr ->
       OrtApi <$> #{peek HsOrtValue, ortApi} ortValuePtr
+  withCTypePtr = withCOrtValuePtr
 
 -- | Internal helper.
 withOrtValuePtr ::
@@ -1405,7 +1752,8 @@ ortApiGetErrorMessage ::
   IO ByteString
 ortApiGetErrorMessage ortApi ortStatusPtr = do
   ConstPtr msgPtr <- _wrap_OrtApi_GetErrorMessage ortApi ortStatusPtr
-  BSU.unsafePackCString msgPtr
+  print (msgPtr == nullPtr)
+  BS.packCString msgPtr
 
 foreign import capi unsafe
   "Onnxruntime/CApi_hsc.h _wrap_OrtApi_GetErrorMessage"
@@ -1462,7 +1810,7 @@ foreign import capi unsafe
     const OrtApi* ortApi,
     OrtLoggingLevel logSeverityLevel,
     const char* logid,
-    OrtEnv** out
+    COrtEnv** out
   ) {
     return ortApi->CreateEnv(logSeverityLevel, logid, out);
   }
@@ -1518,9 +1866,9 @@ ortApiCreateSession ::
 ortApiCreateSession ortEnv modelPath options = do
   ortApi <- getOrtApi ortEnv
   alloca $ \outPtr -> do
-    withCOrtEnvPtr ortEnv $ \cOrtEnvPtr -> do
+    withCTypePtr ortEnv $ \cOrtEnvPtr -> do
       withCString modelPath $ \modelPathPtr -> do
-        withCOrtSessionOptionsPtr options $ \cOrtSessionOptionsPtr -> do
+        withCTypePtr options $ \cOrtSessionOptionsPtr -> do
           ortStatusPtr <-
             _wrap_OrtApi_CreateSession
               ortApi
@@ -1587,7 +1935,77 @@ foreign import capi unsafe
 >   _Inout_updates_all_(output_names_len) OrtValue** outputs
 > );
 -}
+ortApiRun ::
+  OrtSession ->
+  OrtRunOptions ->
+  [String] ->
+  [OrtValue] ->
+  [String] ->
+  IO [OrtValue]
+ortApiRun ortSession ortRunOptions inputNames inputs outputNames = do
+  ortApi <- getOrtApi ortSession
+  alloca @(Ptr COrtValue) $ \outputsPtr ->
+    withCTypePtr ortSession $ \cOrtSessionPtr ->
+      withCTypePtr ortRunOptions $ \cOrtRunOptionsPtr ->
+        withCStringArrayLen inputNames $ \inputLen cInputNames ->
+          withCTypeArrayLen inputs $ \inputLen' cInputs ->
+            withCStringArrayLen outputNames $ \outputLen cOutputNames ->
+              -- TODO turn into a proper exception
+              assert (inputLen == inputLen') $ do
+                ortStatusPtr <-
+                  _wrap_OrtApi_Run
+                    ortApi
+                    cOrtSessionPtr
+                    cOrtRunOptionsPtr
+                    (coerce cInputNames)
+                    (coerce cInputs)
+                    (fromIntegral inputLen)
+                    (coerce cOutputNames)
+                    (fromIntegral outputLen)
+                    outputsPtr
 
+                handleOrtStatus ortApi ortStatusPtr $ do
+                  traverse (wrapCOrtValue ortApi)
+                    =<< peekArray outputLen outputsPtr
+
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_Run"
+  _wrap_OrtApi_Run ::
+    OrtApi ->
+    Ptr COrtSession ->
+    Ptr COrtRunOptions ->
+    ConstPtr (ConstPtr CChar) ->
+    ConstPtr (ConstPtr COrtValue) ->
+    ( #{type size_t} ) ->
+    ConstPtr (ConstPtr CChar) ->
+    ( #{type size_t} ) ->
+    Ptr (Ptr COrtValue) ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_Run(
+    OrtApi* ortApi,
+    COrtSession* session,
+    COrtRunOptions* run_options,
+    const char* const* input_names,
+    const COrtValue* const* inputs,
+    size_t input_len,
+    const char* const* output_names,
+    size_t output_names_len,
+    COrtValue** outputs
+  ) {
+    return ortApi->Run(
+      session,
+      run_options,
+      input_names,
+      inputs,
+      input_len,
+      output_names,
+      output_names_len,
+      outputs
+    );
+  }
+}
 -------------------------------------------------------------------------------
 -- OrtApi::CreateSessionOptions
 
@@ -2668,7 +3086,7 @@ ortApiCreateTensorAsOrtValue ::
   IO OrtValue
 ortApiCreateTensorAsOrtValue allocator shape dataType = do
   ortApi <- getOrtApi allocator
-  withCOrtAllocatorPtr allocator $ \cOrtAllocatorPtr -> do
+  withCTypePtr allocator $ \cOrtAllocatorPtr -> do
     withArrayLen shape $ \shapeLen shapePtr -> do
       alloca $ \outPtr -> do
         ortStatusPtr <-
@@ -2699,14 +3117,14 @@ foreign import capi unsafe
     const OrtApi* ortApi,
     COrtAllocator* allocator,
     const int64_t* shape,
-    size_t shapeLen,
+    size_t shape_len,
     ONNXTensorElementDataType type,
     COrtValue** out
   ) {
     return ortApi->CreateTensorAsOrtValue(
       allocator,
       shape,
-      shapeLen,
+      shape_len,
       type,
       out
     );
@@ -2727,6 +3145,72 @@ foreign import capi unsafe
 >   _Outptr_ OrtValue** out
 > );
 -}
+ortApiWithTensorWithDataAsOrtValue ::
+  forall a b.
+  (IsONNXTensorElementDataType a) =>
+  OrtMemoryInfo ->
+  Vector a ->
+  [Int64] ->
+  (OrtValue -> IO b) ->
+  IO b
+ortApiWithTensorWithDataAsOrtValue memoryInfo values shape action = do
+  ortApi <- getOrtApi memoryInfo
+  withCTypePtr memoryInfo $ \cOrtMemoryInfoPtr -> do
+    let valueLen = VS.length values
+    VS.unsafeWith values $ \valuePtr -> do
+      withArrayLen shape $ \shapeLen shapePtr ->
+        alloca $ \outPtr -> do
+          ortStatusPtr <-
+            _wrap_OrtApi_CreateTensorWithDataAsOrtValue
+              ortApi
+              cOrtMemoryInfoPtr
+              (castPtr valuePtr)
+              (fromIntegral $ valueLen * sizeOf (undefined :: a))
+              shapePtr
+              (fromIntegral shapeLen)
+              (getONNXTensorElementDataType (Proxy :: Proxy a))
+              outPtr
+          ortValue <-
+            handleOrtStatus ortApi ortStatusPtr $ do
+              wrapCOrtValue ortApi
+                =<< peek outPtr
+          action ortValue
+
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_CreateTensorWithDataAsOrtValue"
+  _wrap_OrtApi_CreateTensorWithDataAsOrtValue ::
+    OrtApi ->
+    Ptr COrtMemoryInfo ->
+    Ptr Void ->
+    ( #{type size_t} ) ->
+    Ptr ( #{type int64_t} ) ->
+    ( #{type size_t} ) ->
+    ONNXTensorElementDataType ->
+    Ptr (Ptr COrtValue) ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_CreateTensorWithDataAsOrtValue(
+    const OrtApi* ortApi,
+    const COrtMemoryInfo* info,
+    void* p_data,
+    size_t p_data_len,
+    const int64_t* shape,
+    size_t shapeLen,
+    ONNXTensorElementDataType type,
+    COrtValue** out
+  ) {
+    return ortApi->CreateTensorWithDataAsOrtValue(
+      info,
+      p_data,
+      p_data_len,
+      shape,
+      shapeLen,
+      type,
+      out
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::IsTensor
@@ -2737,9 +3221,76 @@ foreign import capi unsafe
 >   _Out_ int* out
 > );
 -}
+ortApiIsTensor ::
+  OrtValue ->
+  IO Bool
+ortApiIsTensor ortValue = do
+  ortApi <- getOrtApi ortValue
+  withOrtValuePtr ortValue $ \ortValuePtr ->
+    alloca $ \outPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_IsTensor
+          ortValuePtr
+          outPtr
+      handleOrtStatus ortApi ortStatusPtr $ do
+        (==1) <$> peek outPtr
+
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_IsTensor"
+  _wrap_OrtApi_IsTensor ::
+    Ptr OrtValue ->
+    Ptr ( #{type int} ) ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_IsTensor(
+    const HsOrtValue* value,
+    int* out
+  ) {
+    return value->ortApi->IsTensor(
+      value->ortValue,
+      out
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::GetTensorMutableData
+
+data ONNXTypeError
+  = ErrONNXTypeMismatch
+    -- | Expected type.
+    !ONNXType
+    -- | Actual type.
+    !ONNXType
+  | ErrONNXTensorElementDataTypeMismatch
+    -- | Expected element data type.
+    !ONNXTensorElementDataType
+    -- | Actual element data type.
+    !ONNXTensorElementDataType
+  deriving (Eq, Show)
+
+instance Exception ONNXTypeError
+
+ortApiCheckType ::
+  ONNXType ->
+  OrtValue ->
+  IO ()
+ortApiCheckType expectedType ortValue = do
+  actualType <- ortApiGetValueType ortValue
+  unless (expectedType == actualType) $
+    throwIO (ErrONNXTypeMismatch expectedType actualType)
+
+ortApiCheckTensorElementDataType ::
+  ONNXTensorElementDataType ->
+  OrtValue ->
+  IO ()
+ortApiCheckTensorElementDataType expectedElementType ortValue = do
+  ortApiCheckType ONNXTypeTensor ortValue
+  tensorTypeAndShape <- ortApiGetTensorTypeAndShape ortValue
+  actualElementType <- ortApiGetTensorElementType tensorTypeAndShape
+  unless (expectedElementType == actualElementType) $
+    throwIO (ErrONNXTensorElementDataTypeMismatch expectedElementType actualElementType)
 
 {-
 > ORT_API2_STATUS(GetTensorMutableData,
@@ -2747,6 +3298,53 @@ foreign import capi unsafe
 >   _Outptr_ void** out
 > );
 -}
+ortApiWithTensorData ::
+  forall a b.
+  (IsONNXTensorElementDataType a) =>
+  OrtValue ->
+  (Vector a -> IO b) ->
+  IO b
+ortApiWithTensorData ortValue action = do
+  ortApi <- getOrtApi ortValue
+  -- Check the tensor type
+  ortApiCheckTensorElementDataType (getONNXTensorElementDataType (Proxy :: Proxy a)) ortValue
+  -- Get the tensor dimensions
+  tensorTypeAndShape <- ortApiGetTensorTypeAndShape ortValue
+  tensorElementCount <- ortApiGetTensorShapeElementCount tensorTypeAndShape
+  -- Get the tensor data
+  withOrtValuePtr ortValue $ \ortValuePtr ->
+    alloca $ \outPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_GetTensorMutableData
+          ortValuePtr
+          outPtr
+      mutableDataPtr <-
+        handleOrtStatus ortApi ortStatusPtr $ do
+          castPtr
+            <$> peek outPtr
+      mutableDataForeignPtr <-
+        newForeignPtr_ mutableDataPtr
+      action $
+        VS.unsafeFromForeignPtr0 mutableDataForeignPtr (fromIntegral tensorElementCount)
+
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_GetTensorMutableData"
+  _wrap_OrtApi_GetTensorMutableData ::
+    Ptr OrtValue ->
+    Ptr (Ptr Void) ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_GetTensorMutableData(
+    const HsOrtValue* value,
+    void** out
+  ) {
+    return value->ortApi->GetTensorMutableData(
+      value->ortValue,
+      out
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::FillStringTensor
@@ -2782,8 +3380,6 @@ foreign import capi unsafe
 > );
 -}
 
-
-
 -------------------------------------------------------------------------------
 -- OrtApi::CastTypeInfoToTensorInfo
 
@@ -2793,6 +3389,39 @@ foreign import capi unsafe
 >   _Outptr_result_maybenull_ const OrtTensorTypeAndShapeInfo** out
 > );
 -}
+ortApiCastTypeInfoToTensorInfo ::
+  OrtTypeInfo ->
+  IO OrtTensorTypeAndShapeInfo
+ortApiCastTypeInfoToTensorInfo ortTypeInfo = do
+  ortApi <- getOrtApi ortTypeInfo
+  withOrtTypeInfoPtr ortTypeInfo $ \ortTypeInfoPtr ->
+    alloca $ \outPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_CastTypeInfoToTensorInfo
+          (ConstPtr ortTypeInfoPtr)
+          outPtr
+      handleOrtStatus ortApi ortStatusPtr $
+        wrapCOrtTensorTypeAndShapeInfo ortApi . unConstPtr
+          =<< peek outPtr
+
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_CastTypeInfoToTensorInfo"
+  _wrap_OrtApi_CastTypeInfoToTensorInfo ::
+    ConstPtr OrtTypeInfo ->
+    Ptr (ConstPtr COrtTensorTypeAndShapeInfo) ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_CastTypeInfoToTensorInfo(
+    const HsOrtTypeInfo* value,
+    const COrtTensorTypeAndShapeInfo** out
+  ) {
+    return value->ortApi->CastTypeInfoToTensorInfo(
+      value->ortTypeInfo,
+      out
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::GetOnnxTypeFromTypeInfo
@@ -2803,6 +3432,39 @@ foreign import capi unsafe
 >   _Out_ enum ONNXType* out
 > );
 -}
+ortApiGetOnnxTypeFromTypeInfo ::
+  OrtTypeInfo ->
+  IO ONNXType
+ortApiGetOnnxTypeFromTypeInfo ortTypeInfo = do
+  ortApi <- getOrtApi ortTypeInfo
+  withOrtTypeInfoPtr ortTypeInfo $ \ortTypeInfoPtr ->
+    alloca $ \outPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_GetOnnxTypeFromTypeInfo
+          (ConstPtr ortTypeInfoPtr)
+          outPtr
+      handleOrtStatus ortApi ortStatusPtr $
+        ONNXType
+          <$> peek outPtr
+
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_GetOnnxTypeFromTypeInfo"
+  _wrap_OrtApi_GetOnnxTypeFromTypeInfo ::
+    ConstPtr OrtTypeInfo ->
+    Ptr ( #{type ONNXType} ) ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_GetOnnxTypeFromTypeInfo(
+    const HsOrtTypeInfo* value,
+    ONNXType* out
+  ) {
+    return value->ortApi->GetOnnxTypeFromTypeInfo(
+      value->ortTypeInfo,
+      out
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::CreateTensorTypeAndShapeInfo
@@ -2843,6 +3505,39 @@ foreign import capi unsafe
 >  _Out_ enum ONNXTensorElementDataType* out
 > );
 -}
+ortApiGetTensorElementType ::
+  OrtTensorTypeAndShapeInfo ->
+  IO ONNXTensorElementDataType
+ortApiGetTensorElementType ortTensortTypeAndShapeInfo = do
+  ortApi <- getOrtApi ortTensortTypeAndShapeInfo
+  withOrtTensorTypeAndShapeInfoPtr ortTensortTypeAndShapeInfo $ \ortTensortTypeAndShapeInfoPtr ->
+    alloca $ \outPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_GetTensorElementType
+          (ConstPtr ortTensortTypeAndShapeInfoPtr)
+          outPtr
+      handleOrtStatus ortApi ortStatusPtr $
+        ONNXTensorElementDataType <$>
+          peek outPtr
+
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_GetTensorElementType"
+  _wrap_OrtApi_GetTensorElementType ::
+    ConstPtr OrtTensorTypeAndShapeInfo ->
+    Ptr ( #{type ONNXTensorElementDataType} ) ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_GetTensorElementType(
+    const HsOrtTensorTypeAndShapeInfo* value,
+    ONNXTensorElementDataType* out
+  ) {
+    return value->ortApi->GetTensorElementType(
+      value->ortTensorTypeAndShapeInfo,
+      out
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::GetDimensionsCount
@@ -2853,6 +3548,39 @@ foreign import capi unsafe
 >  _Out_ size_t* out
 > );
 -}
+ortApiGetDimensionsCount ::
+  OrtTensorTypeAndShapeInfo ->
+  IO Word64
+ortApiGetDimensionsCount ortTensortTypeAndShapeInfo = do
+  ortApi <- getOrtApi ortTensortTypeAndShapeInfo
+  withOrtTensorTypeAndShapeInfoPtr ortTensortTypeAndShapeInfo $ \ortTensortTypeAndShapeInfoPtr ->
+    alloca $ \outPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_GetDimensionsCount
+          (ConstPtr ortTensortTypeAndShapeInfoPtr)
+          outPtr
+      handleOrtStatus ortApi ortStatusPtr $ do
+        CSize dimValuesLen <- peek outPtr
+        pure dimValuesLen
+
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_GetDimensionsCount"
+  _wrap_OrtApi_GetDimensionsCount ::
+    ConstPtr OrtTensorTypeAndShapeInfo ->
+    Ptr CSize ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_GetDimensionsCount(
+    const HsOrtTensorTypeAndShapeInfo* value,
+    size_t* out
+  ) {
+    return value->ortApi->GetDimensionsCount(
+      value->ortTensorTypeAndShapeInfo,
+      out
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::GetDimensions
@@ -2864,6 +3592,43 @@ foreign import capi unsafe
 >  size_t dim_values_length
 > );
 -}
+ortApiGetDimensions ::
+  OrtTensorTypeAndShapeInfo ->
+  IO [Int64]
+ortApiGetDimensions ortTensortTypeAndShapeInfo = do
+  dimValuesLen <- ortApiGetDimensionsCount ortTensortTypeAndShapeInfo
+  ortApi <- getOrtApi ortTensortTypeAndShapeInfo
+  withOrtTensorTypeAndShapeInfoPtr ortTensortTypeAndShapeInfo $ \ortTensortTypeAndShapeInfoPtr ->
+    alloca $ \dimValuesPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_GetDimensions
+          (ConstPtr ortTensortTypeAndShapeInfoPtr)
+          dimValuesPtr
+          (CSize dimValuesLen)
+      handleOrtStatus ortApi ortStatusPtr $
+        peekArray (fromIntegral dimValuesLen) dimValuesPtr
+
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_GetDimensions"
+  _wrap_OrtApi_GetDimensions ::
+    ConstPtr OrtTensorTypeAndShapeInfo ->
+    Ptr ( #{type int64_t} ) ->
+    CSize ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_GetDimensions(
+    const HsOrtTensorTypeAndShapeInfo* value,
+    int64_t* dim_values,
+    size_t dim_values_length
+  ) {
+    return value->ortApi->GetDimensions(
+      value->ortTensorTypeAndShapeInfo,
+      dim_values,
+      dim_values_length
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::GetSymbolicDimensions
@@ -2885,6 +3650,39 @@ foreign import capi unsafe
 >  _Out_ size_t* out
 > );
 -}
+ortApiGetTensorShapeElementCount ::
+  OrtTensorTypeAndShapeInfo ->
+  IO Word64
+ortApiGetTensorShapeElementCount ortTensortTypeAndShapeInfo = do
+  ortApi <- getOrtApi ortTensortTypeAndShapeInfo
+  withOrtTensorTypeAndShapeInfoPtr ortTensortTypeAndShapeInfo $ \ortTensortTypeAndShapeInfoPtr ->
+    alloca $ \outPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_GetTensorShapeElementCount
+          (ConstPtr ortTensortTypeAndShapeInfoPtr)
+          outPtr
+      handleOrtStatus ortApi ortStatusPtr $
+        fromIntegral
+          <$> peek outPtr
+
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_GetTensorShapeElementCount"
+  _wrap_OrtApi_GetTensorShapeElementCount ::
+    ConstPtr OrtTensorTypeAndShapeInfo ->
+    Ptr CSize ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_GetTensorShapeElementCount(
+    const HsOrtTensorTypeAndShapeInfo* value,
+    size_t* out
+  ) {
+    return value->ortApi->GetTensorShapeElementCount(
+      value->ortTensorTypeAndShapeInfo,
+      out
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::GetTensorTypeAndShape
@@ -2895,6 +3693,39 @@ foreign import capi unsafe
 >  _Outptr_ OrtTensorTypeAndShapeInfo** out
 > );
 -}
+ortApiGetTensorTypeAndShape ::
+  OrtValue ->
+  IO OrtTensorTypeAndShapeInfo
+ortApiGetTensorTypeAndShape ortValue = do
+  ortApi <- getOrtApi ortValue
+  withOrtValuePtr ortValue $ \ortValuePtr ->
+    alloca $ \outPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_GetTensorTypeAndShape
+          (ConstPtr ortValuePtr)
+          outPtr
+      handleOrtStatus ortApi ortStatusPtr $
+        wrapCOrtTensorTypeAndShapeInfo ortApi
+          =<< peek outPtr
+
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_GetTensorTypeAndShape"
+  _wrap_OrtApi_GetTensorTypeAndShape ::
+    ConstPtr OrtValue ->
+    Ptr (Ptr COrtTensorTypeAndShapeInfo) ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_GetTensorTypeAndShape(
+    const HsOrtValue* value,
+    COrtTensorTypeAndShapeInfo** out
+  ) {
+    return value->ortApi->GetTensorTypeAndShape(
+      value->ortValue,
+      out
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::GetTypeInfo
@@ -2905,6 +3736,39 @@ foreign import capi unsafe
 >  _Outptr_result_maybenull_ OrtTypeInfo** out
 > );
 -}
+ortApiGetTypeInfo ::
+  OrtValue ->
+  IO OrtTypeInfo
+ortApiGetTypeInfo ortValue = do
+  ortApi <- getOrtApi ortValue
+  withOrtValuePtr ortValue $ \ortValuePtr ->
+    alloca $ \outPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_GetTypeInfo
+          (ConstPtr ortValuePtr)
+          outPtr
+      handleOrtStatus ortApi ortStatusPtr $
+        wrapCOrtTypeInfo ortApi
+          =<< peek outPtr
+
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_GetTypeInfo"
+  _wrap_OrtApi_GetTypeInfo ::
+    ConstPtr OrtValue ->
+    Ptr (Ptr COrtTypeInfo) ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_GetTypeInfo(
+    const HsOrtValue* value,
+    COrtTypeInfo** out
+  ) {
+    return value->ortApi->GetTypeInfo(
+      value->ortValue,
+      out
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::GetValueType
@@ -2915,6 +3779,39 @@ foreign import capi unsafe
 >  _Out_ enum ONNXType* out
 > );
 -}
+ortApiGetValueType ::
+  OrtValue ->
+  IO ONNXType
+ortApiGetValueType ortValue = do
+  ortApi <- getOrtApi ortValue
+  withOrtValuePtr ortValue $ \ortValuePtr ->
+    alloca $ \outPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_GetValueType
+          (ConstPtr ortValuePtr)
+          outPtr
+      handleOrtStatus ortApi ortStatusPtr $
+        ONNXType
+          <$> peek outPtr
+
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_GetValueType"
+  _wrap_OrtApi_GetValueType ::
+    ConstPtr OrtValue ->
+    Ptr ( #{type ONNXType} ) ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_GetValueType(
+    const HsOrtValue* value,
+    ONNXType* out
+  ) {
+    return value->ortApi->GetValueType(
+      value->ortValue,
+      out
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::CreateMemoryInfo
@@ -2928,6 +3825,51 @@ foreign import capi unsafe
 >  _Outptr_ OrtMemoryInfo** out
 > );
 -}
+ortApiCreateMemoryInfo ::
+  OrtApi ->
+  String ->
+  OrtAllocatorType ->
+  Int ->
+  OrtMemType ->
+  IO OrtMemoryInfo
+ortApiCreateMemoryInfo ortApi allocatorName allocatorType allocatorId memoryType = do
+  withCString allocatorName $ \allocatorNamePtr -> do
+    alloca $ \outPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_CreateMemoryInfo
+          ortApi.ortApiConstPtr
+          (ConstPtr allocatorNamePtr) -- NOTE: This is unsafe.
+          allocatorType
+          (fromIntegral allocatorId)
+          memoryType
+          outPtr
+      handleOrtStatus ortApi ortStatusPtr $ do
+        wrapCOrtMemoryInfo ortApi
+          =<< peek outPtr
+
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_CreateMemoryInfo"
+  _wrap_OrtApi_CreateMemoryInfo ::
+    ConstPtr OrtApi ->
+    ConstPtr CChar ->
+    OrtAllocatorType ->
+    ( #{type int} ) ->
+    OrtMemType ->
+    Ptr (Ptr COrtMemoryInfo) ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_CreateMemoryInfo(
+    const OrtApi* ortApi,
+    const char* name,
+    enum OrtAllocatorType type,
+    int id,
+    enum OrtMemType mem_type,
+    COrtMemoryInfo** out
+  ) {
+    return ortApi->CreateMemoryInfo(name, type, id, mem_type, out);
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::CreateCpuMemoryInfo
@@ -2939,6 +3881,42 @@ foreign import capi unsafe
 >  _Outptr_ OrtMemoryInfo** out
 > );
 -}
+ortApiCreateCpuMemoryInfo ::
+  OrtApi ->
+  OrtAllocatorType ->
+  OrtMemType ->
+  IO OrtMemoryInfo
+ortApiCreateCpuMemoryInfo ortApi allocatorType memoryType = do
+  alloca $ \outPtr -> do
+    ortStatusPtr <-
+      _wrap_OrtApi_CreateCpuMemoryInfo
+        ortApi.ortApiConstPtr
+        allocatorType
+        memoryType
+        outPtr
+    handleOrtStatus ortApi ortStatusPtr $ do
+      wrapCOrtMemoryInfo ortApi
+        =<< peek outPtr
+
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_CreateCpuMemoryInfo"
+  _wrap_OrtApi_CreateCpuMemoryInfo ::
+    ConstPtr OrtApi ->
+    OrtAllocatorType ->
+    OrtMemType ->
+    Ptr (Ptr COrtMemoryInfo) ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_CreateCpuMemoryInfo(
+    const OrtApi* ortApi,
+    enum OrtAllocatorType type,
+    enum OrtMemType mem_type,
+    COrtMemoryInfo** out
+  ) {
+    return ortApi->CreateCpuMemoryInfo(type, mem_type, out);
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::CompareMemoryInfo
