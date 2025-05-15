@@ -8,8 +8,158 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeData #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
-module Onnxruntime.CApi where
+module Onnxruntime.CApi
+  ( -- * API Base
+    OrtApiVersion,
+    OrtApiVersionType,
+    ortApiVersion,
+    ortGetApiBase,
+    ortApiBaseGetVersionString,
+    ortApiBaseGetApi,
+
+    -- * API Types
+    OrtApiBase,
+    ExecutionMode (
+      OrtSequential,
+      OrtParallel
+    ),
+    GraphOptimizationLevel (
+      OrtDisableAll,
+      OrtEnableBasic,
+      OrtEnableExtended,
+      OrtEnableAll
+    ),
+    ONNXTensorElementDataType (
+      ONNXTensorElementDataTypeUndefined,
+      ONNXTensorElementDataTypeFloat,
+      ONNXTensorElementDataTypeUint8,
+      ONNXTensorElementDataTypeInt8,
+      ONNXTensorElementDataTypeUint16,
+      ONNXTensorElementDataTypeInt16,
+      ONNXTensorElementDataTypeInt32,
+      ONNXTensorElementDataTypeInt64,
+      ONNXTensorElementDataTypeString,
+      ONNXTensorElementDataTypeBool,
+      ONNXTensorElementDataTypeFloat16,
+      ONNXTensorElementDataTypeDouble,
+      ONNXTensorElementDataTypeUint32,
+      ONNXTensorElementDataTypeUint64,
+      ONNXTensorElementDataTypeComplex64,
+      ONNXTensorElementDataTypeComplex128,
+      ONNXTensorElementDataTypeBfloat16,
+      ONNXTensorElementDataTypeFloat8e4m3fn,
+      ONNXTensorElementDataTypeFloat8e4m3fnuz,
+      ONNXTensorElementDataTypeFloat8e5m2,
+      ONNXTensorElementDataTypeFloat8e5m2fnuz,
+      ONNXTensorElementDataTypeUint4,
+      ONNXTensorElementDataTypeInt4
+    ),
+    ONNXType (
+      ONNXTypeUnknown,
+      ONNXTypeTensor,
+      ONNXTypeSequence,
+      ONNXTypeMap,
+      ONNXTypeOpaque,
+      ONNXTypeSparseTensor,
+      ONNXTypeOptional
+    ),
+    OrtAllocatorType (
+      OrtInvalidAllocator,
+      OrtDeviceAllocator,
+      OrtArenaAllocator
+    ),
+    OrtErrorCode (
+      OrtOk,
+      OrtFail,
+      OrtInvalidArgument,
+      OrtNoSuchfile,
+      OrtNoModel,
+      OrtEngineError,
+      OrtRuntimeException,
+      OrtInvalidProtobuf,
+      OrtModelLoaded,
+      OrtNotImplemented,
+      OrtInvalidGraph,
+      OrtEpFail
+    ),
+    OrtLoggingLevel (
+      OrtLoggingLevelVerbose,
+      OrtLoggingLevelInfo,
+      OrtLoggingLevelWarning,
+      OrtLoggingLevelError,
+      OrtLoggingLevelFatal
+    ),
+    OrtMemType (
+      OrtMemTypeCPUInput,
+      OrtMemTypeCPUOutput,
+      OrtMemTypeCPU,
+      OrtMemTypeDefault
+    ),
+    OrtApi,
+    OrtAllocator,
+    OrtEnv,
+    OrtMapTypeInfo,
+    OrtMemoryInfo,
+    OrtSession,
+    OrtSessionOptions,
+    OrtTensorTypeAndShapeInfo,
+    OrtTypeInfo,
+    OrtRunOptions,
+    OrtValue,
+
+    -- * API Functions
+    ortApiGetErrorMessageAsString,
+    ortApiGetErrorMessage,
+    ortApiCreateEnv,
+    ortApiCreateSession,
+    ortApiRun,
+    ortApiCreateSessionOptions,
+    ortApiCloneSessionOptions,
+    ortApiSetOptimizedModelFilePath,
+    ortApiSetSessionExecutionMode,
+    ortApiEnableProfiling,
+    ortApiDisableProfiling,
+    ortApiEnableMemPattern,
+    ortApiDisableMemPattern,
+    ortApiEnableCpuMemArena,
+    ortApiDisableCpuMemArena,
+    ortApiSetSessionLogId,
+    ortApiSetSessionLogVerbosityLevel,
+    ortApiSetSessionLogSeverityLevel,
+    ortApiSetSessionGraphOptimizationLevel,
+    ortApiSetIntraOpNumThreads,
+    ortApiSetInterOpNumThreads,
+    ortApiCreateRunOptions,
+    ortApiRunOptionsSetRunLogVerbosityLevel,
+    ortApiRunOptionsSetRunLogSeverityLevel,
+    ortApiRunOptionsSetRunTag,
+    ortApiRunOptionsGetRunLogVerbosityLevel,
+    ortApiRunOptionsGetRunLogSeverityLevel,
+    ortApiRunOptionsGetRunTag,
+    ortApiRunOptionsSetTerminate,
+    ortApiRunOptionsUnsetTerminate,
+    ortApiCreateTensorAsOrtValue,
+    ortApiWithTensorWithDataAsOrtValue,
+    ortApiIsTensor,
+    ortApiCheckType,
+    ortApiCheckTensorElementDataType,
+    ortApiWithTensorData,
+    ortApiCastTypeInfoToTensorInfo,
+    ortApiGetOnnxTypeFromTypeInfo,
+    ortApiGetTensorElementType,
+    ortApiGetDimensionsCount,
+    ortApiGetDimensions,
+    ortApiGetTensorShapeElementCount,
+    ortApiGetTensorTypeAndShape,
+    ortApiGetTypeInfo,
+    ortApiGetValueType,
+    ortApiCreateMemoryInfo,
+    ortApiCreateCpuMemoryInfo,
+    ortApiGetAllocatorWithDefaultOptions,
+    ortApiAddFreeDimensionOverride
+  ) where
 
 import Control.Exception (Exception (..), assert, finally, throwIO)
 import Control.Monad (unless)
