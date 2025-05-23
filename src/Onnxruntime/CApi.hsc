@@ -1979,6 +1979,8 @@ foreign import capi unsafe
 > );
 -}
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::EnableTelemetryEvents
 
@@ -1988,6 +1990,8 @@ foreign import capi unsafe
 >);
 -}
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::DisableTelemetryEvents
 
@@ -1996,6 +2000,8 @@ foreign import capi unsafe
 >   _In_ const OrtEnv* env
 >);
 -}
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::CreateSession
@@ -2069,6 +2075,8 @@ foreign import capi unsafe
 >   _Outptr_ OrtSession** out
 > );
 -}
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::Run
@@ -2792,65 +2800,91 @@ foreign import capi unsafe
 
 -- ORT_API2_STATUS(CreateCustomOpDomain, _In_ const char* domain, _Outptr_ OrtCustomOpDomain** out);
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::CustomOpDomain_Add
 
 -- ORT_API2_STATUS(CustomOpDomain_Add, _Inout_ OrtCustomOpDomain* custom_op_domain, _In_ const OrtCustomOp* op);
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::AddCustomOpDomain
 
 -- ORT_API2_STATUS(AddCustomOpDomain, _Inout_ OrtSessionOptions* options, _In_ OrtCustomOpDomain* custom_op_domain);
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::RegisterCustomOpsLibrary
 
 -- ORT_API2_STATUS(RegisterCustomOpsLibrary, _Inout_ OrtSessionOptions* options, _In_ const char* library_path, _Outptr_ void** library_handle);
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetInputCount
 
 -- ORT_API2_STATUS(SessionGetInputCount, _In_ const OrtSession* session, _Out_ size_t* out);
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetOutputCount
 
 -- ORT_API2_STATUS(SessionGetOutputCount, _In_ const OrtSession* session, _Out_ size_t* out);
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetOverridableInitializerCount
 
 -- ORT_API2_STATUS(SessionGetOverridableInitializerCount, _In_ const OrtSession* session, _Out_ size_t* out);
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetInputTypeInfo
 
 -- ORT_API2_STATUS(SessionGetInputTypeInfo, _In_ const OrtSession* session, size_t index, _Outptr_ OrtTypeInfo** type_info);
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetOutputTypeInfo
 
 -- ORT_API2_STATUS(SessionGetOutputTypeInfo, _In_ const OrtSession* session, size_t index, _Outptr_ OrtTypeInfo** type_info);
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetOverridableInitializerTypeInfo
 
 -- ORT_API2_STATUS(SessionGetOverridableInitializerTypeInfo, _In_ const OrtSession* session, size_t index, _Outptr_ OrtTypeInfo** type_info);
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetInputName
 
 -- ORT_API2_STATUS(SessionGetInputName, _In_ const OrtSession* session, size_t index, _Inout_ OrtAllocator* allocator, _Outptr_ char** value);
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetOutputName
 
 -- ORT_API2_STATUS(SessionGetOutputName, _In_ const OrtSession* session, size_t index, _Inout_ OrtAllocator* allocator, _Outptr_ char** value);
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetOverridableInitializerName
 
 -- ORT_API2_STATUS(SessionGetOverridableInitializerName, _In_ const OrtSession* session, size_t index, _Inout_ OrtAllocator* allocator, _Outptr_ char** value);
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::CreateRunOptions
@@ -3507,6 +3541,8 @@ foreign import capi unsafe
 > );
 -}
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::GetStringTensorDataLength
 
@@ -3516,6 +3552,8 @@ foreign import capi unsafe
 >   _Out_ size_t* len
 > );
 -}
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::GetStringTensorContent
@@ -3529,6 +3567,8 @@ foreign import capi unsafe
 >   size_t offsets_len
 > );
 -}
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::CastTypeInfoToTensorInfo
@@ -3625,6 +3665,8 @@ foreign import capi unsafe
 > );
 -}
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::SetTensorElementType
 
@@ -3634,6 +3676,8 @@ foreign import capi unsafe
 >  enum ONNXTensorElementDataType type
 > );
 -}
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::SetDimensions
@@ -3645,6 +3689,8 @@ foreign import capi unsafe
 >  size_t dim_count
 > );
 -}
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::GetTensorElementType
@@ -3790,6 +3836,8 @@ foreign import capi unsafe
 >  size_t dim_params_length
 > );
 -}
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::GetTensorShapeElementCount
@@ -4079,6 +4127,8 @@ foreign import capi unsafe
 > );
 -}
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::MemoryInfoGetName
 
@@ -4088,6 +4138,8 @@ foreign import capi unsafe
 >  _Out_ const char** out
 > );
 -}
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::MemoryInfoGetId
@@ -4099,6 +4151,8 @@ foreign import capi unsafe
 > );
 -}
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::MemoryInfoGetMemType
 
@@ -4109,6 +4163,8 @@ foreign import capi unsafe
 > );
 -}
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::MemoryInfoGetType
 
@@ -4118,6 +4174,8 @@ foreign import capi unsafe
 >  _Out_ OrtAllocatorType* out
 > );
 -}
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::AllocatorAlloc
@@ -4130,6 +4188,8 @@ foreign import capi unsafe
 > );
 -}
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::AllocatorFree
 
@@ -4140,6 +4200,8 @@ foreign import capi unsafe
 > );
 -}
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::AllocatorGetInfo
 
@@ -4149,6 +4211,8 @@ foreign import capi unsafe
 >  _Outptr_ const struct OrtMemoryInfo** out
 > );
 -}
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::GetAllocatorWithDefaultOptions
@@ -4248,6 +4312,8 @@ foreign import capi unsafe
 > );
 -}
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::GetValueCount
 
@@ -4257,6 +4323,8 @@ foreign import capi unsafe
 >   _Out_ size_t* out
 > );
 -}
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::CreateValue
@@ -4269,6 +4337,8 @@ foreign import capi unsafe
 >   _Outptr_ OrtValue** out
 > );
 -}
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::CreateOpaqueValue
@@ -4283,6 +4353,8 @@ foreign import capi unsafe
 > );
 -}
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::GetOpaqueValue
 
@@ -4296,40 +4368,56 @@ foreign import capi unsafe
 > );
 -}
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::KernelInfoGetAttribute_float
 
 -- ORT_API2_STATUS(KernelInfoGetAttribute_float, _In_ const OrtKernelInfo* info, _In_ const char* name, _Out_ float* out);
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::KernelInfoGetAttribute_int64
 
 -- ORT_API2_STATUS(KernelInfoGetAttribute_int64, _In_ const OrtKernelInfo* info, _In_ const char* name, _Out_ int64_t* out);
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::KernelInfoGetAttribute_string
 
 -- ORT_API2_STATUS(KernelInfoGetAttribute_string, _In_ const OrtKernelInfo* info, _In_ const char* name, _Out_ char* out, _Inout_ size_t* size);
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::KernelContext_GetInputCount
 
 -- ORT_API2_STATUS(KernelContext_GetInputCount, _In_ const OrtKernelContext* context, _Out_ size_t* out);
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::KernelContext_GetOutputCount
 
 -- ORT_API2_STATUS(KernelContext_GetOutputCount, _In_ const OrtKernelContext* context, _Out_ size_t* out);
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::KernelContext_GetInput
 
 -- ORT_API2_STATUS(KernelContext_GetInput, _In_ const OrtKernelContext* context, _In_ size_t index, _Out_ const OrtValue** out);
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::KernelContext_GetOutput
 
 -- ORT_API2_STATUS(KernelContext_GetOutput, _Inout_ OrtKernelContext* context, _In_ size_t index, _In_ const int64_t* dim_values, size_t dim_count, _Outptr_ OrtValue** out);
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::GetDenotationFromTypeInfo
@@ -4342,6 +4430,8 @@ foreign import capi unsafe
 > );
 -}
 
+-- TODO: unimplemented
+
 -------------------------------------------------------------------------------
 -- OrtApi::CastTypeInfoToMapTypeInfo
 
@@ -4351,6 +4441,8 @@ foreign import capi unsafe
 >   _Outptr_result_maybenull_ const OrtMapTypeInfo** out
 > );
 -}
+
+-- TODO: unimplemented
 
 -------------------------------------------------------------------------------
 -- OrtApi::CastTypeInfoToSequenceTypeInfo
@@ -4362,4 +4454,729 @@ foreign import capi unsafe
 > );
 -}
 
+-- TODO: unimplemented
+
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetMapKeyType
+
+-- > ORT_API2_STATUS(GetMapKeyType, _In_ const OrtMapTypeInfo* map_type_info, _Out_ enum ONNXTensorElementDataType* out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetMapValueType
+
+-- > ORT_API2_STATUS(GetMapValueType, _In_ const OrtMapTypeInfo* map_type_info, _Outptr_ OrtTypeInfo** type_info);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetSequenceElementType
+
+-- > ORT_API2_STATUS(GetSequenceElementType, _In_ const OrtSequenceTypeInfo* sequence_type_info, _Outptr_ OrtTypeInfo** type_info);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SessionEndProfiling
+
+-- > ORT_API2_STATUS(SessionEndProfiling, _In_ OrtSession* session, _Inout_ OrtAllocator* allocator, _Outptr_ char** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SessionGetModelMetadata
+
+-- > ORT_API2_STATUS(SessionGetModelMetadata, _In_ const OrtSession* session, _Outptr_ OrtModelMetadata** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::ModelMetadataGetProducerName
+
+-- > ORT_API2_STATUS(ModelMetadataGetProducerName, _In_ const OrtModelMetadata* model_metadata, _Inout_ OrtAllocator* allocator, _Outptr_ char** value);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::ModelMetadataGetGraphName
+
+-- > ORT_API2_STATUS(ModelMetadataGetGraphName, _In_ const OrtModelMetadata* model_metadata, _Inout_ OrtAllocator* allocator, _Outptr_ char** value);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::ModelMetadataGetDomain
+
+-- > ORT_API2_STATUS(ModelMetadataGetDomain, _In_ const OrtModelMetadata* model_metadata, _Inout_ OrtAllocator* allocator, _Outptr_ char** value);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::ModelMetadataGetDescription
+
+-- > ORT_API2_STATUS(ModelMetadataGetDescription, _In_ const OrtModelMetadata* model_metadata, _Inout_ OrtAllocator* allocator, _Outptr_ char** value);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::ModelMetadataLookupCustomMetadataMap
+
+-- > ORT_API2_STATUS(ModelMetadataLookupCustomMetadataMap, _In_ const OrtModelMetadata* model_metadata, _Inout_ OrtAllocator* allocator, _In_ const char* key, _Outptr_result_maybenull_ char** value);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::ModelMetadataGetVersion
+
+-- > ORT_API2_STATUS(ModelMetadataGetVersion, _In_ const OrtModelMetadata* model_metadata, _Out_ int64_t* value);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreateEnvWithGlobalThreadPools
+
+-- > ORT_API2_STATUS(CreateEnvWithGlobalThreadPools, OrtLoggingLevel log_severity_level, _In_ const char* logid, _In_ const OrtThreadingOptions* tp_options, _Outptr_ OrtEnv** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::DisablePerSessionThreads
+
+-- > ORT_API2_STATUS(DisablePerSessionThreads, _Inout_ OrtSessionOptions* options);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreateThreadingOptions
+
+-- > ORT_API2_STATUS(CreateThreadingOptions, _Outptr_ OrtThreadingOptions** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::ModelMetadataGetCustomMetadataMapKeys
+
+-- > ORT_API2_STATUS(ModelMetadataGetCustomMetadataMapKeys, _In_ const OrtModelMetadata* model_metadata, _Inout_ OrtAllocator* allocator, _Outptr_result_buffer_maybenull_(*num_keys) char*** keys, _Out_ int64_t* num_keys);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::AddFreeDimensionOverrideByName
+
+-- > ORT_API2_STATUS(AddFreeDimensionOverrideByName, _Inout_ OrtSessionOptions* options, _In_ const char* dim_name, _In_ int64_t dim_value);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetAvailableProviders
+
+-- > ORT_API2_STATUS(GetAvailableProviders, _Outptr_ char*** out_ptr, _Out_ int* provider_length);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::ReleaseAvailableProviders
+
+-- > ORT_API2_STATUS(ReleaseAvailableProviders, _In_ char** ptr, _In_ int providers_length);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetStringTensorElementLength
+
+-- > ORT_API2_STATUS(GetStringTensorElementLength, _In_ const OrtValue* value, size_t index, _Out_ size_t* out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetStringTensorElement
+
+-- > ORT_API2_STATUS(GetStringTensorElement, _In_ const OrtValue* value, size_t s_len, size_t index, _Out_writes_bytes_all_(s_len) void* s);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::FillStringTensorElement
+
+-- > ORT_API2_STATUS(FillStringTensorElement, _Inout_ OrtValue* value, _In_ const char* s, size_t index);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::AddSessionConfigEntry
+
+-- > ORT_API2_STATUS(AddSessionConfigEntry, _Inout_ OrtSessionOptions* options, _In_z_ const char* config_key, _In_z_ const char* config_value);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreateAllocator
+
+-- > ORT_API2_STATUS(CreateAllocator, _In_ const OrtSession* session, _In_ const OrtMemoryInfo* mem_info, _Outptr_ OrtAllocator** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::RunWithBinding
+
+-- > ORT_API2_STATUS(RunWithBinding, _Inout_ OrtSession* session, _In_ const OrtRunOptions* run_options, _In_ const OrtIoBinding* binding_ptr);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreateIoBinding
+
+-- > ORT_API2_STATUS(CreateIoBinding, _Inout_ OrtSession* session, _Outptr_ OrtIoBinding** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::BindInput
+
+-- > ORT_API2_STATUS(BindInput, _Inout_ OrtIoBinding* binding_ptr, _In_ const char* name, _In_ const OrtValue* val_ptr);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::BindOutput
+
+-- > ORT_API2_STATUS(BindOutput, _Inout_ OrtIoBinding* binding_ptr, _In_ const char* name, _In_ const OrtValue* val_ptr);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::BindOutputToDevice
+
+-- > ORT_API2_STATUS(BindOutputToDevice, _Inout_ OrtIoBinding* binding_ptr, _In_ const char* name, _In_ const OrtMemoryInfo* mem_info_ptr);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetBoundOutputNames
+
+-- > ORT_API2_STATUS(GetBoundOutputNames, _In_ const OrtIoBinding* binding_ptr, _In_ OrtAllocator* allocator, _Out_ char** buffer, _Out_writes_all_(count) size_t** lengths, _Out_ size_t* count);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetBoundOutputValues
+
+-- > ORT_API2_STATUS(GetBoundOutputValues, _In_ const OrtIoBinding* binding_ptr, _In_ OrtAllocator* allocator, _Out_writes_all_(output_count) OrtValue*** output, _Out_ size_t* output_count);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::ClearBoundInputs
+
+-- > void(ORT_API_CALL* ClearBoundInputs)(_Inout_ OrtIoBinding* binding_ptr) NO_EXCEPTION ORT_ALL_ARGS_NONNULL;
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::ClearBoundOutputs
+
+-- > void(ORT_API_CALL* ClearBoundOutputs)(_Inout_ OrtIoBinding* binding_ptr) NO_EXCEPTION ORT_ALL_ARGS_NONNULL;
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::TensorAt
+
+-- > ORT_API2_STATUS(TensorAt, _Inout_ OrtValue* value, const int64_t* location_values, size_t location_values_count, _Outptr_ void** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreateAndRegisterAllocator
+
+-- > ORT_API2_STATUS(CreateAndRegisterAllocator, _Inout_ OrtEnv* env, _In_ const OrtMemoryInfo* mem_info, _In_ const OrtArenaCfg* arena_cfg);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SetLanguageProjection
+
+-- > ORT_API2_STATUS(SetLanguageProjection, _In_ const OrtEnv* ort_env, _In_ OrtLanguageProjection projection);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SessionGetProfilingStartTimeNs
+
+-- > ORT_API2_STATUS(SessionGetProfilingStartTimeNs, _In_ const OrtSession* session, _Outptr_ uint64_t* out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SetGlobalIntraOpNumThreads
+
+-- > ORT_API2_STATUS(SetGlobalIntraOpNumThreads, _Inout_ OrtThreadingOptions* tp_options, int intra_op_num_threads);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SetGlobalInterOpNumThreads
+
+-- > ORT_API2_STATUS(SetGlobalInterOpNumThreads, _Inout_ OrtThreadingOptions* tp_options, int inter_op_num_threads);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SetGlobalSpinControl
+
+-- > ORT_API2_STATUS(SetGlobalSpinControl, _Inout_ OrtThreadingOptions* tp_options, int allow_spinning);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::AddInitializer
+
+-- > ORT_API2_STATUS(AddInitializer, _Inout_ OrtSessionOptions* options, _In_z_ const char* name, _In_ const OrtValue* val);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreateEnvWithCustomLoggerAndGlobalThreadPools
+
+-- > ORT_API2_STATUS(CreateEnvWithCustomLoggerAndGlobalThreadPools, OrtLoggingFunction logging_function, _In_opt_ void* logger_param, OrtLoggingLevel log_severity_level, _In_ const char* logid, _In_ const struct OrtThreadingOptions* tp_options, _Outptr_ OrtEnv** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SessionOptionsAppendExecutionProvider_CUDA
+
+-- > ORT_API2_STATUS(SessionOptionsAppendExecutionProvider_CUDA, _In_ OrtSessionOptions* options, _In_ const OrtCUDAProviderOptions* cuda_options);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SessionOptionsAppendExecutionProvider_ROCM
+
+-- > ORT_API2_STATUS(SessionOptionsAppendExecutionProvider_ROCM, _In_ OrtSessionOptions* options, _In_ const OrtROCMProviderOptions* rocm_options);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SessionOptionsAppendExecutionProvider_OpenVINO
+
+-- > ORT_API2_STATUS(SessionOptionsAppendExecutionProvider_OpenVINO, _In_ OrtSessionOptions* options, _In_ const OrtOpenVINOProviderOptions* provider_options);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SetGlobalDenormalAsZero
+
+-- > ORT_API2_STATUS(SetGlobalDenormalAsZero, _Inout_ OrtThreadingOptions* tp_options);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreateArenaCfg
+
+-- > ORT_API2_STATUS(CreateArenaCfg, _In_ size_t max_mem, int arena_extend_strategy, int initial_chunk_size_bytes, int max_dead_bytes_per_chunk, _Outptr_ OrtArenaCfg** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::ModelMetadataGetGraphDescription
+
+-- > ORT_API2_STATUS(ModelMetadataGetGraphDescription, _In_ const OrtModelMetadata* model_metadata, _Inout_ OrtAllocator* allocator, _Outptr_ char** value);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SessionOptionsAppendExecutionProvider_TensorRT
+
+-- > ORT_API2_STATUS(SessionOptionsAppendExecutionProvider_TensorRT, _In_ OrtSessionOptions* options, _In_ const OrtTensorRTProviderOptions* tensorrt_options);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SetCurrentGpuDeviceId
+
+-- > ORT_API2_STATUS(SetCurrentGpuDeviceId, _In_ int device_id);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetCurrentGpuDeviceId
+
+-- > ORT_API2_STATUS(GetCurrentGpuDeviceId, _In_ int* device_id);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::KernelInfoGetAttributeArray_float
+
+-- > ORT_API2_STATUS(KernelInfoGetAttributeArray_float, _In_ const OrtKernelInfo* info, _In_ const char* name, _Out_ float* out, _Inout_ size_t* size);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::KernelInfoGetAttributeArray_int64
+
+-- > ORT_API2_STATUS(KernelInfoGetAttributeArray_int64, _In_ const OrtKernelInfo* info, _In_ const char* name, _Out_ int64_t* out, _Inout_ size_t* size);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreateArenaCfgV2
+
+-- > ORT_API2_STATUS(CreateArenaCfgV2, _In_reads_(num_keys) const char* const* arena_config_keys, _In_reads_(num_keys) const size_t* arena_config_values, _In_ size_t num_keys, _Outptr_ OrtArenaCfg** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::AddRunConfigEntry
+
+-- > ORT_API2_STATUS(AddRunConfigEntry, _Inout_ OrtRunOptions* options, _In_z_ const char* config_key, _In_z_ const char* config_value);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreatePrepackedWeightsContainer
+
+-- > ORT_API2_STATUS(CreatePrepackedWeightsContainer, _Outptr_ OrtPrepackedWeightsContainer** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreateSessionWithPrepackedWeightsContainer
+
+-- > ORT_API2_STATUS(CreateSessionWithPrepackedWeightsContainer, _In_ const OrtEnv* env, _In_ const ORTCHAR_T* model_path, _In_ const OrtSessionOptions* options, _Inout_ OrtPrepackedWeightsContainer* prepacked_weights_container, _Outptr_ OrtSession** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreateSessionFromArrayWithPrepackedWeightsContainer
+
+-- > ORT_API2_STATUS(CreateSessionFromArrayWithPrepackedWeightsContainer, _In_ const OrtEnv* env, _In_ const void* model_data, size_t model_data_length, _In_ const OrtSessionOptions* options, _Inout_ OrtPrepackedWeightsContainer* prepacked_weights_container, _Outptr_ OrtSession** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SessionOptionsAppendExecutionProvider_TensorRT_V2
+
+-- > ORT_API2_STATUS(SessionOptionsAppendExecutionProvider_TensorRT_V2, _In_ OrtSessionOptions* options, _In_ const OrtTensorRTProviderOptionsV2* tensorrt_options);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreateTensorRTProviderOptions
+
+-- > ORT_API2_STATUS(CreateTensorRTProviderOptions, _Outptr_ OrtTensorRTProviderOptionsV2** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::UpdateTensorRTProviderOptions
+
+-- > ORT_API2_STATUS(UpdateTensorRTProviderOptions, _Inout_ OrtTensorRTProviderOptionsV2* tensorrt_options, _In_reads_(num_keys) const char* const* provider_options_keys, _In_reads_(num_keys) const char* const* provider_options_values, _In_ size_t num_keys);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetTensorRTProviderOptionsAsString
+
+-- > ORT_API2_STATUS(GetTensorRTProviderOptionsAsString, _In_ const OrtTensorRTProviderOptionsV2* tensorrt_options, _Inout_ OrtAllocator* allocator, _Outptr_ char** ptr);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::ReleaseTensorRTProviderOptions
+
+-- > void(ORT_API_CALL* ReleaseTensorRTProviderOptions)(_Frees_ptr_opt_ OrtTensorRTProviderOptionsV2* input);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::EnableOrtCustomOps
+
+-- > ORT_API2_STATUS(EnableOrtCustomOps, _Inout_ OrtSessionOptions* options);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::RegisterAllocator
+
+-- > ORT_API2_STATUS(RegisterAllocator, _Inout_ OrtEnv* env, _In_ OrtAllocator* allocator);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::UnregisterAllocator
+
+-- > ORT_API2_STATUS(UnregisterAllocator, _Inout_ OrtEnv* env, _In_ const OrtMemoryInfo* mem_info);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::IsSparseTensor
+
+-- > ORT_API2_STATUS(IsSparseTensor, _In_ const OrtValue* value, _Out_ int* out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreateSparseTensorAsOrtValue
+
+-- > ORT_API2_STATUS(CreateSparseTensorAsOrtValue, _Inout_ OrtAllocator* allocator, _In_ const int64_t* dense_shape, size_t dense_shape_len, ONNXTensorElementDataType type, _Outptr_ OrtValue** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::FillSparseTensorCoo
+
+-- > ORT_API2_STATUS(FillSparseTensorCoo, _Inout_ OrtValue* ort_value, _In_ const OrtMemoryInfo* data_mem_info, _In_ const int64_t* values_shape, size_t values_shape_len, _In_ const void* values, _In_ const int64_t* indices_data, size_t indices_num);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::FillSparseTensorCsr
+
+-- > ORT_API2_STATUS(FillSparseTensorCsr, _Inout_ OrtValue* ort_value, _In_ const OrtMemoryInfo* data_mem_info, _In_ const int64_t* values_shape, size_t values_shape_len, _In_ const void* values, _In_ const int64_t* inner_indices_data, size_t inner_indices_num, _In_ const int64_t* outer_indices_data, size_t outer_indices_num);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::FillSparseTensorBlockSparse
+
+-- > ORT_API2_STATUS(FillSparseTensorBlockSparse, _Inout_ OrtValue* ort_value, _In_ const OrtMemoryInfo* data_mem_info, _In_ const int64_t* values_shape, size_t values_shape_len, _In_ const void* values, _In_ const int64_t* indices_shape_data, size_t indices_shape_len, _In_ const int32_t* indices_data);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreateSparseTensorWithValuesAsOrtValue
+
+-- > ORT_API2_STATUS(CreateSparseTensorWithValuesAsOrtValue, _In_ const OrtMemoryInfo* info, _Inout_ void* p_data, _In_ const int64_t* dense_shape, size_t dense_shape_len, _In_ const int64_t* values_shape, size_t values_shape_len, ONNXTensorElementDataType type, _Outptr_ OrtValue** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::UseCooIndices
+
+-- > ORT_API2_STATUS(UseCooIndices, _Inout_ OrtValue* ort_value, _Inout_ int64_t* indices_data, size_t indices_num);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::UseCsrIndices
+
+-- > ORT_API2_STATUS(UseCsrIndices, _Inout_ OrtValue* ort_value, _Inout_ int64_t* inner_data, size_t inner_num, _Inout_ int64_t* outer_data, size_t outer_num);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::UseBlockSparseIndices
+
+-- > ORT_API2_STATUS(UseBlockSparseIndices, _Inout_ OrtValue* ort_value, const int64_t* indices_shape, size_t indices_shape_len, _Inout_ int32_t* indices_data);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetSparseTensorFormat
+
+-- > ORT_API2_STATUS(GetSparseTensorFormat, _In_ const OrtValue* ort_value, _Out_ enum OrtSparseFormat* out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetSparseTensorValuesTypeAndShape
+
+-- > ORT_API2_STATUS(GetSparseTensorValuesTypeAndShape, _In_ const OrtValue* ort_value, _Outptr_ OrtTensorTypeAndShapeInfo** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetSparseTensorValues
+
+-- > ORT_API2_STATUS(GetSparseTensorValues, _In_ const OrtValue* ort_value, _Outptr_ const void** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetSparseTensorIndicesTypeShape
+
+-- > ORT_API2_STATUS(GetSparseTensorIndicesTypeShape, _In_ const OrtValue* ort_value, enum OrtSparseIndicesFormat indices_format, _Outptr_ OrtTensorTypeAndShapeInfo** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetSparseTensorIndices
+
+-- > ORT_API2_STATUS(GetSparseTensorIndices, _In_ const OrtValue* ort_value, enum OrtSparseIndicesFormat indices_format, _Out_ size_t* num_indices, _Outptr_ const void** indices);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::HasValue
+
+-- > ORT_API2_STATUS(HasValue, _In_ const OrtValue* value, _Out_ int* out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::KernelContext_GetGPUComputeStream
+
+-- > ORT_API2_STATUS(KernelContext_GetGPUComputeStream, _In_ const OrtKernelContext* context, _Outptr_ void** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetTensorMemoryInfo
+
+-- > ORT_API2_STATUS(GetTensorMemoryInfo, _In_ const OrtValue* value, _Out_ const OrtMemoryInfo** mem_info);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetExecutionProviderApi
+
+-- > ORT_API2_STATUS(GetExecutionProviderApi, _In_ const char* provider_name, _In_ uint32_t version, _Outptr_ const void** provider_api);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SessionOptionsSetCustomCreateThreadFn
+
+-- > ORT_API2_STATUS(SessionOptionsSetCustomCreateThreadFn, _Inout_ OrtSessionOptions* options, _In_ OrtCustomCreateThreadFn ort_custom_create_thread_fn);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SessionOptionsSetCustomThreadCreationOptions
+
+-- > ORT_API2_STATUS(SessionOptionsSetCustomThreadCreationOptions, _Inout_ OrtSessionOptions* options, _In_ void* ort_custom_thread_creation_options);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SessionOptionsSetCustomJoinThreadFn
+
+-- > ORT_API2_STATUS(SessionOptionsSetCustomJoinThreadFn, _Inout_ OrtSessionOptions* options, _In_ OrtCustomJoinThreadFn ort_custom_join_thread_fn);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SetGlobalCustomCreateThreadFn
+
+-- > ORT_API2_STATUS(SetGlobalCustomCreateThreadFn, _Inout_ OrtThreadingOptions* tp_options, _In_ OrtCustomCreateThreadFn ort_custom_create_thread_fn);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SetGlobalCustomThreadCreationOptions
+
+-- > ORT_API2_STATUS(SetGlobalCustomThreadCreationOptions, _Inout_ OrtThreadingOptions* tp_options, _In_ void* ort_custom_thread_creation_options);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SetGlobalCustomJoinThreadFn
+
+-- > ORT_API2_STATUS(SetGlobalCustomJoinThreadFn, _Inout_ OrtThreadingOptions* tp_options, _In_ OrtCustomJoinThreadFn ort_custom_join_thread_fn);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SynchronizeBoundInputs
+
+-- > ORT_API2_STATUS(SynchronizeBoundInputs, _Inout_ OrtIoBinding* binding_ptr);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SynchronizeBoundOutputs
+
+-- > ORT_API2_STATUS(SynchronizeBoundOutputs, _Inout_ OrtIoBinding* binding_ptr);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SessionOptionsAppendExecutionProvider_CUDA_V2
+
+-- > ORT_API2_STATUS(SessionOptionsAppendExecutionProvider_CUDA_V2, _In_ OrtSessionOptions* options, _In_ const OrtCUDAProviderOptionsV2* cuda_options);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreateCUDAProviderOptions
+
+-- > ORT_API2_STATUS(CreateCUDAProviderOptions, _Outptr_ OrtCUDAProviderOptionsV2** out);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::UpdateCUDAProviderOptions
+
+-- > ORT_API2_STATUS(UpdateCUDAProviderOptions, _Inout_ OrtCUDAProviderOptionsV2* cuda_options, _In_reads_(num_keys) const char* const* provider_options_keys, _In_reads_(num_keys) const char* const* provider_options_values, _In_ size_t num_keys);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::GetCUDAProviderOptionsAsString
+
+-- > ORT_API2_STATUS(GetCUDAProviderOptionsAsString, _In_ const OrtCUDAProviderOptionsV2* cuda_options, _Inout_ OrtAllocator* allocator, _Outptr_ char** ptr);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::ReleaseCUDAProviderOptions
+
+-- > void(ORT_API_CALL* ReleaseCUDAProviderOptions)(_Frees_ptr_opt_ OrtCUDAProviderOptionsV2* input);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SessionOptionsAppendExecutionProvider_MIGraphX
+
+-- > ORT_API2_STATUS(SessionOptionsAppendExecutionProvider_MIGraphX, _In_ OrtSessionOptions* options, _In_ const OrtMIGraphXProviderOptions* migraphx_options);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::AddExternalInitializers
+
+-- > ORT_API2_STATUS(AddExternalInitializers, _In_ OrtSessionOptions* options, _In_reads_(num_initializers) const char* const* initializer_names, _In_reads_(num_initializers) const OrtValue* const* initializers, size_t num_initializers);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreateOpAttr
+
+-- > ORT_API2_STATUS(CreateOpAttr, _In_ const char* name, _In_ const void* data, _In_ int len, _In_ OrtOpAttrType type, _Outptr_ OrtOpAttr** op_attr);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CreateOp
+
+-- > ORT_API2_STATUS(CreateOp, _In_ const OrtKernelInfo* info, _In_z_ const char* op_name, _In_z_ const char* domain, int version, _In_reads_(type_constraint_count) const char** type_constraint_names, _In_reads_(type_constraint_count) const ONNXTensorElementDataType* type_constraint_values, int type_constraint_count, _In_reads_(attr_count) const OrtOpAttr* const* attr_values, int attr_count, int input_count, int output_count, _Outptr_ OrtOp** ort_op);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::InvokeOp
+
+-- > ORT_API2_STATUS(InvokeOp, _In_ const OrtKernelContext* context, _In_ const OrtOp* ort_op, _In_ const OrtValue* const* input_values, _In_ int input_count, _Inout_ OrtValue* const* output_values, _In_ int output_count);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::SessionOptionsAppendExecutionProvider
+
+-- > ORT_API2_STATUS(SessionOptionsAppendExecutionProvider, _In_ OrtSessionOptions* options, _In_ const char* provider_name, _In_reads_(num_keys) const char* const* provider_options_keys, _In_reads_(num_keys) const char* const* provider_options_values, _In_ size_t num_keys);
+
+-- TODO: unimplemented
+
+--------------------------------------------------------------------------------
+-- OrtApi::CopyKernelInfo
+
+-- > ORT_API2_STATUS(CopyKernelInfo, _In_ const OrtKernelInfo* info, _Outptr_ OrtKernelInfo** info_copy);
+
+-- TODO: unimplemented
+
 -- ... and many more
+-- ... genuinely, this is only about halfway through the header file
