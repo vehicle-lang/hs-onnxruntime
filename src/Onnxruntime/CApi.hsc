@@ -1512,9 +1512,11 @@ data
   typedef OrtTensorTypeAndShapeInfo COrtTensorTypeAndShapeInfo;
 }
 
-newtype
+data
   {-# CTYPE "Onnxruntime/CApi_hsc.h" "HsOrtTensorTypeAndShapeInfo" #-}
-  OrtTensorTypeAndShapeInfo = OrtTensorTypeAndShapeInfo { ortTensorTypeAndShapeInfoForeignPtr :: ForeignPtr OrtTensorTypeAndShapeInfo }
+  OrtTensorTypeAndShapeInfo
+    = OrtTensorTypeAndShapeInfo { ortTensorTypeAndShapeInfoForeignPtr :: ForeignPtr OrtTensorTypeAndShapeInfo }
+    | OrtTensorTypeAndShapeInfoFromOrtTypeInfo { ortTypeInfo :: OrtTypeInfo, ortTensorTypeAndShapeInfoForeignPtr :: ForeignPtr OrtTensorTypeAndShapeInfo }
 
 #{def
   typedef struct HsOrtTensorTypeAndShapeInfo {
@@ -1588,6 +1590,31 @@ foreign import capi unsafe
 #{def
   void _wrap_OrtApi_ReleaseTensorTypeAndShapeInfo(HsOrtTensorTypeAndShapeInfo* ortTensorTypeAndShapeInfo) {
     ortTensorTypeAndShapeInfo->ortApi->ReleaseTensorTypeAndShapeInfo(ortTensorTypeAndShapeInfo->ortTensorTypeAndShapeInfo);
+    free(ortTensorTypeAndShapeInfo);
+  }
+}
+
+-- | Internal helper.
+wrapCOrtTensorTypeAndShapeInfoFromOrtTypeInfo ::
+  OrtApi ->
+  OrtTypeInfo ->
+  Ptr COrtTensorTypeAndShapeInfo ->
+  IO OrtTensorTypeAndShapeInfo
+wrapCOrtTensorTypeAndShapeInfoFromOrtTypeInfo ortApi ortTypeInfo rawOrtTensorTypeAndShapeInfoPtr = do
+  ortTensorTypeAndShapeInfoPtr <- _wrap_COrtTensorTypeAndShapeInfo ortApi.ortApiConstPtr rawOrtTensorTypeAndShapeInfoPtr
+  ortTensorTypeAndShapeInfoForeignPtr <- newForeignPtr _wrap_OrtApi_OrtTensorTypeAndShapeInfoFromOrtTypeInfo ortTensorTypeAndShapeInfoPtr
+  pure $ OrtTensorTypeAndShapeInfoFromOrtTypeInfo ortTypeInfo ortTensorTypeAndShapeInfoForeignPtr
+
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h &_wrap_OrtApi_OrtTensorTypeAndShapeInfoFromOrtTypeInfo"
+  _wrap_OrtApi_OrtTensorTypeAndShapeInfoFromOrtTypeInfo ::
+    FunPtr (
+      Ptr OrtTensorTypeAndShapeInfo ->
+      IO ()
+    )
+
+#{def
+  void _wrap_OrtApi_OrtTensorTypeAndShapeInfoFromOrtTypeInfo(HsOrtTensorTypeAndShapeInfo* ortTensorTypeAndShapeInfo) {
     free(ortTensorTypeAndShapeInfo);
   }
 }
@@ -3591,7 +3618,7 @@ ortApiCastTypeInfoToTensorInfo ortTypeInfo = do
           (ConstPtr ortTypeInfoPtr)
           outPtr
       handleOrtStatus ortApi ortStatusPtr $
-        wrapCOrtTensorTypeAndShapeInfo ortApi . unConstPtr
+        wrapCOrtTensorTypeAndShapeInfoFromOrtTypeInfo ortApi ortTypeInfo . unConstPtr
           =<< peek outPtr
 
 foreign import capi unsafe
