@@ -28,7 +28,7 @@ test_ortApiBaseGetVersionString =
     versionString <- ortApiBaseGetVersionString ortApiBase
     case readVersion versionString of
       Nothing -> assertFailure $ "Could not parse version " <> versionString
-      Just version -> version >= makeVersion [1, 21] @? "Onnxruntime version is <1.21"
+      Just version -> version >= makeVersion [1, 21] @? "Onnxruntime version is >=1.21"
 
 test_ortApiGetModelTypeInfo :: TestTree
 test_ortApiGetModelTypeInfo = do
@@ -41,6 +41,7 @@ test_ortApiGetModelTypeInfo = do
     ortEnv <- ortApiCreateEnv ortApi OrtLoggingLevelFatal logid
     -- Create OrtSessionOptions
     ortSessionOptions <- ortApiCreateSessionOptions ortApi
+    ortApiSetSessionLogSeverityLevel ortSessionOptions OrtLoggingLevelFatal
     -- Create OrtSession
     -- TODO: make model path more robust
     let modelPath = "test/data/controller.onnx"
@@ -81,6 +82,7 @@ test_ortApiRun = do
     ortEnv <- ortApiCreateEnv ortApi OrtLoggingLevelFatal logid
     -- Create OrtSessionOptions
     ortSessionOptions <- ortApiCreateSessionOptions ortApi
+    ortApiSetSessionLogSeverityLevel ortSessionOptions OrtLoggingLevelFatal
     -- Create OrtSession
     -- TODO: make model path more robust
     let modelPath = "test/data/controller.onnx"

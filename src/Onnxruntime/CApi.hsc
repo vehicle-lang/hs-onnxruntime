@@ -269,6 +269,15 @@ foreign import capi unsafe
 -------------------------------------------------------------------------------
 -- OrtApiBase::GetApi
 
+
+data OrtApiUnsupportedVersionError
+  = ErrOrtApiUnsupportedVersion
+    -- | Requested version..
+    !OrtApiVersionType
+  deriving (Eq, Show)
+
+instance Exception OrtApiUnsupportedVersionError
+
 {- |
 Get a pointer to the requested version of the 'OrtApi'
 -}
@@ -276,7 +285,11 @@ ortApiBaseGetApi ::
   OrtApiBase ->
   OrtApiVersionType ->
   IO OrtApi
-ortApiBaseGetApi = coerce _wrap_OrtApiBase_GetApi
+ortApiBaseGetApi ortApiBase version = do
+  ortApi <- coerce _wrap_OrtApiBase_GetApi ortApiBase version
+  if ortApi == nullPtr
+    then throwIO (ErrOrtApiUnsupportedVersion version)
+    else pure (coerce ortApi)
 {-# INLINE ortApiBaseGetApi #-}
 
 foreign import capi unsafe
@@ -2669,7 +2682,7 @@ foreign import capi unsafe
 -}
 ortApiSetSessionLogSeverityLevel ::
   OrtSessionOptions ->
-  Int ->
+  OrtLoggingLevel ->
   IO ()
 ortApiSetSessionLogSeverityLevel options sessionLogSeverityLevel = do
   ortApi <- getOrtApi options
@@ -2677,7 +2690,7 @@ ortApiSetSessionLogSeverityLevel options sessionLogSeverityLevel = do
     ortStatusPtr <-
       _wrap_OrtApi_SetSessionLogSeverityLevel
         optionsPtr
-        (fromIntegral sessionLogSeverityLevel)
+        sessionLogSeverityLevel
     handleOrtStatus ortApi ortStatusPtr $ do
       pure ()
 
@@ -2685,7 +2698,7 @@ foreign import capi unsafe
   "Onnxruntime/CApi_hsc.h _wrap_OrtApi_SetSessionLogSeverityLevel"
   _wrap_OrtApi_SetSessionLogSeverityLevel ::
     Ptr OrtSessionOptions ->
-    CInt ->
+    OrtLoggingLevel ->
     IO (Ptr OrtStatus)
 
 #{def
