@@ -131,6 +131,10 @@ module Onnxruntime.CApi
     ortApiSetSessionGraphOptimizationLevel,
     ortApiSetIntraOpNumThreads,
     ortApiSetInterOpNumThreads,
+    ortApiSessionGetInputCount,
+    ortApiSessionGetOutputCount,
+    ortApiSessionGetInputTypeInfo,
+    ortApiSessionGetOutputTypeInfo,
     ortApiCreateRunOptions,
     ortApiRunOptionsSetRunLogVerbosityLevel,
     ortApiRunOptionsSetRunLogSeverityLevel,
@@ -2853,16 +2857,88 @@ foreign import capi unsafe
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetInputCount
 
--- ORT_API2_STATUS(SessionGetInputCount, _In_ const OrtSession* session, _Out_ size_t* out);
+{- |
+> ORT_API2_STATUS(SessionGetInputCount,
+> _In_ const OrtSession* session,
+> _Out_ size_t* out
+> );
+-}
+ortApiSessionGetInputCount ::
+  OrtSession ->
+  IO Word64
+ortApiSessionGetInputCount ortSession = do
+  ortApi <- getOrtApi ortSession
+  withOrtSessionPtr ortSession $ \ortSessionPtr ->
+    alloca $ \outPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_SessionGetInputCount
+          (ConstPtr ortSessionPtr)
+          outPtr
+      handleOrtStatus ortApi ortStatusPtr $ do
+        CSize inputCount <- peek outPtr
+        pure inputCount
 
--- TODO: unimplemented
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_SessionGetInputCount"
+  _wrap_OrtApi_SessionGetInputCount ::
+    ConstPtr OrtSession ->
+    Ptr CSize ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_SessionGetInputCount(
+    const HsOrtSession* ortSession,
+    size_t* out
+  ) {
+    return ortSession->ortApi->SessionGetInputCount(
+      ortSession->ortSession,
+      out
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetOutputCount
 
--- ORT_API2_STATUS(SessionGetOutputCount, _In_ const OrtSession* session, _Out_ size_t* out);
+{- |
+> ORT_API2_STATUS(SessionGetOutputCount,
+> _In_ const OrtSession* session,
+> _Out_ size_t* out
+> );
+-}
+ortApiSessionGetOutputCount ::
+  OrtSession ->
+  IO Word64
+ortApiSessionGetOutputCount ortSession = do
+  ortApi <- getOrtApi ortSession
+  withOrtSessionPtr ortSession $ \ortSessionPtr ->
+    alloca $ \outPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_SessionGetOutputCount
+          (ConstPtr ortSessionPtr)
+          outPtr
+      handleOrtStatus ortApi ortStatusPtr $ do
+        CSize inputCount <- peek outPtr
+        pure inputCount
 
--- TODO: unimplemented
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_SessionGetOutputCount"
+  _wrap_OrtApi_SessionGetOutputCount ::
+    ConstPtr OrtSession ->
+    Ptr CSize ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_SessionGetOutputCount(
+    const HsOrtSession* ortSession,
+    size_t* out
+  ) {
+    return ortSession->ortApi->SessionGetOutputCount(
+      ortSession->ortSession,
+      out
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetOverridableInitializerCount
@@ -2874,16 +2950,100 @@ foreign import capi unsafe
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetInputTypeInfo
 
--- ORT_API2_STATUS(SessionGetInputTypeInfo, _In_ const OrtSession* session, size_t index, _Outptr_ OrtTypeInfo** type_info);
+{- |
+> ORT_API2_STATUS(SessionGetInputTypeInfo,
+> _In_ const OrtSession* session,
+> size_t index,
+> _Outptr_ OrtTypeInfo** type_info
+> );
+-}
+ortApiSessionGetInputTypeInfo ::
+  OrtSession ->
+  Word64 ->
+  IO OrtTypeInfo
+ortApiSessionGetInputTypeInfo ortSession index = do
+  ortApi <- getOrtApi ortSession
+  withOrtSessionPtr ortSession $ \ortSessionPtr ->
+    alloca $ \outPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_SessionGetInputTypeInfo
+          (ConstPtr ortSessionPtr)
+          (CSize index)
+          outPtr
+      handleOrtStatus ortApi ortStatusPtr $
+        wrapCOrtTypeInfo ortApi
+          =<< peek outPtr
 
--- TODO: unimplemented
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_SessionGetInputTypeInfo"
+  _wrap_OrtApi_SessionGetInputTypeInfo ::
+    ConstPtr OrtSession ->
+    CSize ->
+    Ptr (Ptr COrtTypeInfo) ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_SessionGetInputTypeInfo(
+    const HsOrtSession* ortSession,
+    size_t index,
+    COrtTypeInfo** out
+  ) {
+    return ortSession->ortApi->SessionGetInputTypeInfo(
+      ortSession->ortSession,
+      index,
+      out
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetOutputTypeInfo
 
--- ORT_API2_STATUS(SessionGetOutputTypeInfo, _In_ const OrtSession* session, size_t index, _Outptr_ OrtTypeInfo** type_info);
+{- |
+> ORT_API2_STATUS(SessionGetOutputTypeInfo,
+> _In_ const OrtSession* session,
+> size_t index,
+> _Outptr_ OrtTypeInfo** type_info
+> );
+-}
+ortApiSessionGetOutputTypeInfo ::
+  OrtSession ->
+  Word64 ->
+  IO OrtTypeInfo
+ortApiSessionGetOutputTypeInfo ortSession index = do
+  ortApi <- getOrtApi ortSession
+  withOrtSessionPtr ortSession $ \ortSessionPtr ->
+    alloca $ \outPtr -> do
+      ortStatusPtr <-
+        _wrap_OrtApi_SessionGetOutputTypeInfo
+          (ConstPtr ortSessionPtr)
+          (CSize index)
+          outPtr
+      handleOrtStatus ortApi ortStatusPtr $
+        wrapCOrtTypeInfo ortApi
+          =<< peek outPtr
 
--- TODO: unimplemented
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_SessionGetOutputTypeInfo"
+  _wrap_OrtApi_SessionGetOutputTypeInfo ::
+    ConstPtr OrtSession ->
+    CSize ->
+    Ptr (Ptr COrtTypeInfo) ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_SessionGetOutputTypeInfo(
+    const HsOrtSession* ortSession,
+    size_t index,
+    COrtTypeInfo** out
+  ) {
+    return ortSession->ortApi->SessionGetOutputTypeInfo(
+      ortSession->ortSession,
+      index,
+      out
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetOverridableInitializerTypeInfo
@@ -3617,9 +3777,16 @@ ortApiCastTypeInfoToTensorInfo ortTypeInfo = do
         _wrap_OrtApi_CastTypeInfoToTensorInfo
           (ConstPtr ortTypeInfoPtr)
           outPtr
-      handleOrtStatus ortApi ortStatusPtr $
-        wrapCOrtTensorTypeAndShapeInfoFromOrtTypeInfo ortApi ortTypeInfo . unConstPtr
-          =<< peek outPtr
+      handleOrtStatus ortApi ortStatusPtr $ do
+        ConstPtr ortTypeAndShapeInfoPtr <- peek outPtr
+        -- If the ortTypeInfo does not represent a tensor type,
+        -- then OrtApi::CastTypeInfoToTensorInfo returns NULL.
+        if ortTypeAndShapeInfoPtr == nullPtr
+          then do
+            actualType <- ortApiGetOnnxTypeFromTypeInfo ortTypeInfo
+            throwIO (ErrONNXTypeMismatch ONNXTypeTensor actualType)
+          else
+            wrapCOrtTensorTypeAndShapeInfoFromOrtTypeInfo ortApi ortTypeInfo ortTypeAndShapeInfoPtr
 
 foreign import capi unsafe
   "Onnxruntime/CApi_hsc.h _wrap_OrtApi_CastTypeInfoToTensorInfo"

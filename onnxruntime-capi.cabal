@@ -59,7 +59,7 @@ library
   else
     extra-libraries: onnxruntime
 
-test-suite onnxruntime-capi
+test-suite onnxruntime-capi-test
   import:         language
   type:           exitcode-stdio-1.0
   hs-source-dirs: test
