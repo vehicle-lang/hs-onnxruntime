@@ -37,9 +37,9 @@ library
   build-tool-depends: hsc2hs:hsc2hs
   hs-source-dirs:     src
   build-depends:
-    , base        >=4.13  && <5
-    , bytestring  ^>=0.12
-    , vector      ^>=0.13
+    , base        >=4.13 && <5
+    , bytestring  ^>=0.11 || ^>=0.12
+    , vector      ^>=0.12 || ^>=0.13
 
   if flag(pkg-config)
     pkgconfig-depends: libonnxruntime >=1.21
@@ -58,4 +58,4 @@ test-suite onnxruntime-capi
     , onnxruntime-capi
     , tasty             ^>=1.5
     , tasty-hunit       ^>=0.10
-    , vector            ^>=0.13
+    , vector            ^>=0.12 || ^>=0.13
