@@ -8,12 +8,20 @@ copyright:     Copyright (c) 2025 Wen Kokke and Well-Typed LLP
 license-files:
   LICENSE
   NOTICE
+extra-source-files:
+  include/onnxruntime_c_api.h
 
 flag pkg-config
   default:     True
   manual:      False
   description:
     Use @pkg-config@ executable to locate foreign @onnxruntime@ library.
+
+flag use-bundled-header
+  default:     True
+  manual:      True
+  description:
+    Use bundled copy of @onnxruntime_c_api.h@ header file
 
 common language
   ghc-options:
@@ -40,6 +48,10 @@ library
     , base        >=4.13  && <5
     , bytestring  ^>=0.12
     , vector      ^>=0.13
+
+  if flag(use-bundled-header)
+    includes:     onnxruntime_c_api.h
+    include-dirs: include
 
   if flag(pkg-config)
     pkgconfig-depends: libonnxruntime >=1.21
