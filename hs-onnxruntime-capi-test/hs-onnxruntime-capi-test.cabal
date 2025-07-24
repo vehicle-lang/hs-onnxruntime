@@ -1,0 +1,46 @@
+cabal-version:      3.4
+build-type:         Simple
+name:               hs-onnxruntime-capi-test
+synopsis:           Test suite for onnxruntime-capi
+description:        Test suite for onnxruntime-capi.
+version:            0.1.0.0
+license:            AGPL-3.0-only
+author:             Wen Kokke
+maintainer:         wenkokke@users.noreply.github.com
+category:           AI, Machine Learning, Testing
+copyright:          Copyright (c) 2025 Wen Kokke and Well-Typed LLP
+license-files:
+  LICENSE
+  NOTICE
+
+extra-source-files: test/data/controller.onnx
+tested-with:        GHC ==9.6.7 || ==9.8.4 || ==9.10.2 || ==9.12.2
+
+common language
+  ghc-options:
+    -Wall -Wcompat -Wredundant-constraints
+    -Wunticked-promoted-constructors -Wunused-packages
+
+  default-language:   Haskell2010
+  default-extensions:
+    ImportQualifiedPost
+    ScopedTypeVariables
+
+  if impl(ghc <9.6.1)
+    ghc-options: -optc=-Wno-discarded-qualifiers
+
+    if os(osx)
+      ghc-options: -optc=-Wno-incompatible-pointer-types-discards-qualifiers
+
+test-suite onnxruntime-capi-test
+  import:         language
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is:        Main.hs
+  other-modules:  Test.Onnxruntime.CApi
+  build-depends:
+    , base                 >=4.13  && <5
+    , hs-onnxruntime-capi
+    , tasty                ^>=1.5
+    , tasty-hunit          ^>=0.10
+    , vector               ^>=0.12 || ^>=0.13

@@ -16,7 +16,7 @@ runs:
     - name: 🛠️ Setup Homebrew
       if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
       id: setup-homebrew
-      uses: Homebrew/actions/setup-homebrew@master
+      uses: Homebrew/actions/setup-homebrew@main
 
     - name: 🛠️ Install onnxruntime (Linux and macOS)
       if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}

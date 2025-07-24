@@ -1,1 +1,6 @@
-packages: onnxruntime-capi.cabal
+index-state:
+  , hackage.haskell.org 2025-07-24T17:45:05Z
+
+packages:
+    hs-onnxruntime-capi
+    hs-onnxruntime-capi-test
