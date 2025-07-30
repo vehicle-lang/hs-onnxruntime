@@ -94,11 +94,9 @@ test_ortApiRun = do
         ortSession <- ortApiCreateSession ortEnv modelPath ortSessionOptions
         -- Create OrtRunOptions
         ortRunOptions <- ortApiCreateRunOptions ortApi
-        -- Create OrtMemoryInfo
-        ortMemoryInfo <- ortApiCreateCpuMemoryInfo ortApi OrtDeviceAllocator OrtMemTypeDefault
         -- Create input OrtValue
         let input1Data = VS.fromList [10, 10] :: Vector Float
-        ortApiWithTensorWithDataAsOrtValue ortMemoryInfo input1Data [1, 2] $ \input1 -> do
+        ortApiWithTensorWithDataAsOrtValue ortApi input1Data [1, 2] $ \input1 -> do
             -- Run
             let inputNames = ["input_1"]
             let outputNames = ["dense_3"]

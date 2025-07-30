@@ -3642,13 +3642,13 @@ foreign import capi unsafe
 ortApiWithTensorWithDataAsOrtValue ::
   forall a b.
   (IsONNXTensorElementDataType a) =>
-  OrtMemoryInfo ->
+  OrtApi ->
   Vector a ->
   [Int64] ->
   (OrtValue -> IO b) ->
   IO b
-ortApiWithTensorWithDataAsOrtValue memoryInfo values shape action = do
-  ortApi <- getOrtApi memoryInfo
+ortApiWithTensorWithDataAsOrtValue ortApi values shape action = do
+  memoryInfo <- ortApiCreateCpuMemoryInfo ortApi OrtDeviceAllocator OrtMemTypeCPU
   withCTypePtr memoryInfo $ \cOrtMemoryInfoPtr -> do
     let valueLen = VS.length values
     VS.unsafeWith values $ \valuePtr -> do
