@@ -138,6 +138,8 @@ module Onnxruntime.CApi
     ortApiSetInterOpNumThreads,
     ortApiSessionGetInputCount,
     ortApiSessionGetOutputCount,
+    ortApiSessionGetInputName,
+    ortApiSessionGetOutputName,
     ortApiSessionGetInputTypeInfo,
     ortApiSessionGetOutputTypeInfo,
     ortApiCreateRunOptions,
@@ -167,7 +169,7 @@ module Onnxruntime.CApi
     ortApiCreateMemoryInfo,
     ortApiCreateCpuMemoryInfo,
     ortApiGetAllocatorWithDefaultOptions,
-    ortApiAddFreeDimensionOverride
+    ortApiAddFreeDimensionOverride,
   ) where
 
 import Control.Exception (Exception (..), assert, finally, throwIO)
@@ -3073,16 +3075,119 @@ foreign import capi unsafe
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetInputName
 
--- ORT_API2_STATUS(SessionGetInputName, _In_ const OrtSession* session, size_t index, _Inout_ OrtAllocator* allocator, _Outptr_ char** value);
+{- |
+> ORT_API2_STATUS(SessionGetInputName,
+>   _In_ const OrtSession* session,
+>   size_t index,
+>   _Inout_ OrtAllocator* allocator,
+>   _Outptr_ char** value
+> );
+-}
+ortApiSessionGetInputName ::
+  OrtSession ->
+  Word64 ->
+  OrtAllocator ->
+  IO String
+ortApiSessionGetInputName ortSession index allocator = do
+  ortApi <- getOrtApi ortSession
+  withOrtSessionPtr ortSession $ \ortSessionPtr ->
+    withOrtAllocatorPtr allocator $ \allocatorPtr -> do
+      alloca $ \valuePtr -> do
+        ortStatusPtr <-
+          _wrap_OrtApi_SessionGetInputName
+            (ConstPtr ortSessionPtr)
+            (CSize index)
+            allocatorPtr
+            valuePtr
+        handleOrtStatus ortApi ortStatusPtr $ do
+          cString <- peek valuePtr
+          result <- peekCString cString
+          ortApiAllocatorFree allocator cString
+          pure result
 
--- TODO: unimplemented
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_SessionGetInputName"
+  _wrap_OrtApi_SessionGetInputName ::
+    ConstPtr OrtSession ->
+    CSize ->
+    Ptr OrtAllocator ->
+    Ptr CString ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_SessionGetInputName(
+    const HsOrtSession* ortSession,
+    size_t index,
+    HsOrtAllocator* allocator,
+    char** value
+  ) {
+    return ortSession->ortApi->SessionGetInputName(
+      ortSession->ortSession,
+      index,
+      allocator->ortAllocator,
+      value
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetOutputName
 
--- ORT_API2_STATUS(SessionGetOutputName, _In_ const OrtSession* session, size_t index, _Inout_ OrtAllocator* allocator, _Outptr_ char** value);
+{- |
+> ORT_API2_STATUS(SessionGetOutputName,
+>   _In_ const OrtSession* session,
+>   size_t index,
+>   _Inout_ OrtAllocator* allocator,
+>   _Outptr_ char** value
+> );
+-}
+ortApiSessionGetOutputName ::
+  OrtSession ->
+  Word64 ->
+  OrtAllocator ->
+  IO String
+ortApiSessionGetOutputName ortSession index allocator = do
+  ortApi <- getOrtApi ortSession
+  withOrtSessionPtr ortSession $ \ortSessionPtr ->
+    withOrtAllocatorPtr allocator $ \allocatorPtr -> do
+      alloca $ \valuePtr -> do
+        ortStatusPtr <-
+          _wrap_OrtApi_SessionGetOutputName
+            (ConstPtr ortSessionPtr)
+            (CSize index)
+            allocatorPtr
+            valuePtr
+        handleOrtStatus ortApi ortStatusPtr $ do
+          cString <- peek valuePtr
+          result <- peekCString cString
+          ortApiAllocatorFree allocator cString
+          pure result
 
--- TODO: unimplemented
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_SessionGetOutputName"
+  _wrap_OrtApi_SessionGetOutputName ::
+    ConstPtr OrtSession ->
+    CSize ->
+    Ptr OrtAllocator ->
+    Ptr CString ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_SessionGetOutputName(
+    const HsOrtSession* ortSession,
+    size_t index,
+    HsOrtAllocator* allocator,
+    char** value
+  ) {
+    return ortSession->ortApi->SessionGetOutputName(
+      ortSession->ortSession,
+      index,
+      allocator->ortAllocator,
+      value
+    );
+  }
+}
+
 
 -------------------------------------------------------------------------------
 -- OrtApi::SessionGetOverridableInitializerName
@@ -4405,14 +4510,44 @@ foreign import capi unsafe
 -------------------------------------------------------------------------------
 -- OrtApi::AllocatorFree
 
-{-
+{- |
 > ORT_API2_STATUS(AllocatorFree,
 >  _Inout_ OrtAllocator* ort_allocator,
 >  void* p
 > );
 -}
+ortApiAllocatorFree ::
+  OrtAllocator ->
+  Ptr a ->
+  IO ()
+ortApiAllocatorFree allocator ptr = do
+  ortApi <- getOrtApi allocator
+  withOrtAllocatorPtr allocator $ \allocatorPtr -> do
+    ortStatusPtr <-
+      _wrap_OrtApi_AllocatorFree
+        allocatorPtr
+        ptr
+    handleOrtStatus ortApi ortStatusPtr $ do
+      pure ()
 
--- TODO: unimplemented
+foreign import capi unsafe
+  "Onnxruntime/CApi_hsc.h _wrap_OrtApi_AllocatorFree"
+  _wrap_OrtApi_AllocatorFree ::
+    Ptr OrtAllocator ->
+    Ptr a ->
+    IO (Ptr OrtStatus)
+
+#{def
+  OrtStatus* _wrap_OrtApi_AllocatorFree(
+    HsOrtAllocator* allocator,
+    void* p
+  ) {
+    return allocator->ortApi->AllocatorFree(
+      allocator->ortAllocator,
+      p
+    );
+  }
+}
 
 -------------------------------------------------------------------------------
 -- OrtApi::AllocatorGetInfo
