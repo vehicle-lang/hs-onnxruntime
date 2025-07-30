@@ -76,7 +76,8 @@ jobs:
             --enable-tests \
             --extra-lib-dirs=${{ steps.setup-onnxruntime.outputs.onnxruntime-libdir }} \
             --extra-include-dirs=${{ steps.setup-onnxruntime.outputs.onnxruntime-includedir }} \
-            --flags=-pkg-config
+            --flags=-pkg-config \
+            --flags=-use-bundled-header
           cabal build all --dry-run
 
       - name: 💾 Restore Cabal dependencies

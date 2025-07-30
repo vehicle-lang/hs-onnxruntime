@@ -22,8 +22,8 @@ source-repository head
   subdir:   hs-onnxruntime-capi
 
 flag pkg-config
-  default:     True
-  manual:      False
+  default:     False
+  manual:      True
   description:
     Use @pkg-config@ executable to locate foreign @onnxruntime@ library.
 
@@ -39,11 +39,19 @@ common language
 
   default-language:   Haskell2010
   default-extensions:
+    DataKinds
+    DerivingStrategies
     ImportQualifiedPost
+    LambdaCase
+    OverloadedRecordDot
+    PatternSynonyms
     RankNTypes
+    RecordWildCards
     ScopedTypeVariables
     StandaloneKindSignatures
     TypeApplications
+    TypeData
+    TypeFamilies
 
   if impl(ghc <9.6.1)
     ghc-options: -optc=-Wno-discarded-qualifiers
@@ -57,17 +65,17 @@ library
   build-tool-depends: hsc2hs:hsc2hs
   hs-source-dirs:     src
   build-depends:
-    , base                  >=4.13  && <5
+    , base                  >=4.18  && <5
     , base-compat-constptr  >=0.1   && <0.2
     , bytestring            ^>=0.11 || ^>=0.12
     , vector                ^>=0.12 || ^>=0.13
 
-  if flag(use-bundled-header)
-    includes:     onnxruntime_c_api.h
-    include-dirs: include
-
   if flag(pkg-config)
     pkgconfig-depends: libonnxruntime >=1.21
+
+  elif flag(use-bundled-header)
+    includes:     onnxruntime_c_api.h
+    include-dirs: include
 
   else
     extra-libraries: onnxruntime
