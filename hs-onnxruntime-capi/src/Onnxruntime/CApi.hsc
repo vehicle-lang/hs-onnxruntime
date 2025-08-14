@@ -4430,8 +4430,10 @@ ortApiGetAllocatorWithDefaultOptions ortApi = do
         ortApi.ortApiConstPtr
         outPtr
     handleOrtStatus ortApi ortStatusPtr $ do
-      wrapCOrtAllocator ortApi
-        =<< peek outPtr
+      rawOrtAllocatorPtr <- peek outPtr
+      ortAllocatorPtr <- _wrap_COrtAllocator ortApi.ortApiConstPtr rawOrtAllocatorPtr
+      ortAllocatorForeignPtr <- newForeignPtr_ ortAllocatorPtr
+      pure $ OrtAllocator ortAllocatorForeignPtr
 
 foreign import capi unsafe
   "Onnxruntime/CApi_hsc.h _wrap_OrtApi_GetAllocatorWithDefaultOptions"
