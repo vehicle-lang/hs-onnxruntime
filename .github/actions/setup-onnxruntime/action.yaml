@@ -22,16 +22,16 @@ runs:
         key: ${{ runner.os }}-onnxruntime-${{ inputs.onnxruntime-version }}
 
     - name: 📥 Checkout onnxruntime
-      if: ${{ steps.cache-haskell.outputs.cache-hit != 'true' }}
+      if: ${{ steps.cache-onnxruntime.outputs.cache-hit != 'true' }}
       uses: actions/checkout@v5
       with:
         repository: Microsoft/onnxruntime
         ref: v${{ inputs.onnxruntime-version}}
         path: ${{ github.workspace }}/onnxruntime
-        submodule: true
+        submodules: true
 
     - name: 🏗️ Build onnxruntime
-      if: ${{ steps.cache-haskell.outputs.cache-hit != 'true' }}
+      if: ${{ steps.cache-onnxruntime.outputs.cache-hit != 'true' }}
       run: |
         ./build.sh \
             --config RelWithDebInfo \
@@ -42,7 +42,7 @@ runs:
       working-directory: ${{ github.workspace }}/onnxruntime
 
     - name: 💾 Save onnxruntime
-      if: ${{ steps.cache-haskell.outputs.cache-hit != 'true' }}
+      if: ${{ steps.cache-onnxruntime.outputs.cache-hit != 'true' }}
       uses: actions/cache/save@v4
       with:
         path: ${{ github.workspace }}/onnxruntime

@@ -74,12 +74,14 @@ jobs:
 
       - name: 🛠️ Configure
         run: |
-          cabal configure \
-            --enable-tests \
-            --extra-lib-dirs=${{ steps.setup-onnxruntime.outputs.onnxruntime-libdir }} \
-            --extra-include-dirs=${{ steps.setup-onnxruntime.outputs.onnxruntime-includedir }} \
-            --flags=-pkg-config \
-            --flags=-use-bundled-header
+          {
+            echo "ignore-project: False";
+            echo "tests: True";
+            echo "package hs-onnxruntime-capi";
+            echo "  extra-include-dirs: ${{ steps.setup-onnxruntime.outputs.onnxruntime-includedir }}";
+            echo "  extra-lib-dirs: ${{ steps.setup-onnxruntime.outputs.onnxruntime-libdir }}";
+            echo "  flags: -pkg-config -use-bundled-header"
+          } > cabal.project.local
           cabal build all --dry-run
 
       - name: 💾 Restore Cabal dependencies
@@ -106,13 +108,9 @@ jobs:
 
       - name: 🏗️ Build Haskell Packages
         run: cabal build all
-        env:
-          LD_LIBRARY_PATH: ${{ steps.setup-onnxruntime.outputs.onnxruntime-libdir }}
 
       - name: 🧪 Test Haskell Packages
         run: cabal test all
-        env:
-          LD_LIBRARY_PATH: ${{ steps.setup-onnxruntime.outputs.onnxruntime-libdir }}
 
   #############################################################################
   # Lint with actionlint
