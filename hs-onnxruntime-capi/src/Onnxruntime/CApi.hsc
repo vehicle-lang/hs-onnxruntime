@@ -61,6 +61,11 @@ module Onnxruntime.CApi
       OrtDeviceAllocator,
       OrtArenaAllocator
     ),
+    OrtError (
+      OrtError,
+      ortErrorCode,
+      ortErrorMessage
+    ),
     OrtErrorCode (
       OrtOk,
       OrtFail,
