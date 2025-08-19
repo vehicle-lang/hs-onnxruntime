@@ -1,5 +1,9 @@
 name: "Setup onnxruntime"
 description: "Install the latest onnxruntime version"
+inputs:
+  onnxruntime-version:
+    required: true
+    description: "The onnxruntime version"
 outputs:
   onnxruntime-libdir:
     description: "The onnxruntime libdir"
@@ -7,25 +11,52 @@ outputs:
   onnxruntime-includedir:
     description: "The onnxruntime includedir"
     value: ${{ steps.outputs.outputs.onnxruntime-includedir }}
-  onnxruntime-pkg-config-path:
-    description: "The onnxruntime pkg-config path"
-    value: ${{ steps.outputs.outputs.onnxruntime-pkg-config-path }}
 runs:
   using: composite
   steps:
-    - name: 🛠️ Setup Homebrew
-      if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
-      id: setup-homebrew
-      uses: Homebrew/actions/setup-homebrew@main
+    - name: 💾 Restore onnxruntime
+      uses: actions/cache/restore@v4
+      id: cache-onnxruntime
+      with:
+        path: ${{ github.workspace }}/onnxruntime
+        key: ${{ runner.os }}-onnxruntime-${{ inputs.onnxruntime-version }}
 
-    - name: 🛠️ Install onnxruntime (Linux and macOS)
-      if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
+    - name: 📥 Checkout onnxruntime
+      if: ${{ steps.cache-haskell.outputs.cache-hit != 'true' }}
+      uses: actions/checkout@v5
+      with:
+        repository: Microsoft/onnxruntime
+        ref: v${{ inputs.onnxruntime-version}}
+        path: ${{ github.workspace }}/onnxruntime
+        submodule: true
+
+    - name: 🏗️ Build onnxruntime
+      if: ${{ steps.cache-haskell.outputs.cache-hit != 'true' }}
       run: |
-        brew install onnxruntime
-        ONNXRUNTIME_VERSION=$(brew info onnxruntime | head -1 | cut -d' ' -f4)
-        echo "ONNXRUNTIME_LIBDIR=$(brew --cellar)/onnxruntime/$ONNXRUNTIME_VERSION/lib" >> $GITHUB_ENV
-        echo "ONNXRUNTIME_INCLUDEDIR=$(brew --cellar)/onnxruntime/$ONNXRUNTIME_VERSION/include/onnxruntime" >> $GITHUB_ENV
-        echo "ONNXRUNTIME_PKG_CONFIG_PATH=$(brew --cellar)/onnxruntime/$ONNXRUNTIME_VERSION/lib/pkgconfig" >> $GITHUB_ENV
+        ./build.sh \
+            --config RelWithDebInfo \
+            --build_shared_lib \
+            --parallel \
+            --compile_no_warning_as_error
+      shell: sh
+      working-directory: ${{ github.workspace }}/onnxruntime
+
+    - name: 💾 Save onnxruntime
+      if: ${{ steps.cache-haskell.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ github.workspace }}/onnxruntime
+        key: ${{ steps.cache-onnxruntime.outputs.cache-primary-key }}
+
+    - name: 🛠️ Set environment variables
+      run: |
+        echo "ONNXRUNTIME_LIBDIR=${{ github.workspace }}/onnxruntime/build/Linux/RelWithDebInfo" >> $GITHUB_ENV
+        echo "ONNXRUNTIME_INCLUDEDIR=${{ github.workspace }}/onnxruntime/include/onnxruntime/core/session" >> $GITHUB_ENV
+      shell: sh
+
+    - name: 🛠️ Set LD_LIBRARY_PATH
+      run: |
+        echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ONNXRUNTIME_LIBDIR}" >> $GITHUB_ENV
       shell: sh
 
     - name: 🛠️ Set outputs
@@ -33,5 +64,4 @@ runs:
       run: |
         echo "onnxruntime-libdir=$ONNXRUNTIME_LIBDIR" >> $GITHUB_OUTPUT
         echo "onnxruntime-includedir=$ONNXRUNTIME_INCLUDEDIR" >> $GITHUB_OUTPUT
-        echo "onnxruntime-pkg-config-path=$ONNXRUNTIME_PKG_CONFIG_PATH" >> $GITHUB_OUTPUT
       shell: sh

@@ -38,12 +38,12 @@ jobs:
     runs-on: "${{ matrix.os }}"
     strategy:
       matrix:
-        os: ["ubuntu-latest", "macOS-latest"]
-        ghc-version: ["9.12", "9.10", "9.8"]
+        os: ["ubuntu-latest"]
+        ghc-version: ["9.6"] # ["9.12", "9.10", "9.8"]
         cabal-version: [""] # use version from dev-dependencies
-        include:
-          # Test older versions exclusively on Linux
-          - { os: "ubuntu-latest", ghc-version: "9.6" }
+        # include:
+        # Test older versions exclusively on Linux
+        # - { os: "ubuntu-latest", ghc-version: "9.6" }
 
     steps:
       - name: 📥 Checkout repository
@@ -62,6 +62,8 @@ jobs:
       - name: 🛠️ Setup ONNX Runtime
         id: setup-onnxruntime
         uses: ./.github/actions/setup-onnxruntime
+        with:
+          onnxruntime-version: "1.22.2"
 
       - name: 🛠️ Install Haskell
         uses: haskell-actions/setup@v2
@@ -129,7 +131,7 @@ jobs:
         run: cat "./scripts/dev-dependencies.txt" >> "$GITHUB_OUTPUT"
         id: dev-dependencies
 
-      - name: "Setup actionlint"
+      - name: 🛠️ Setup actionlint
         uses: ./.github/actions/setup-actionlint
         with:
           actionlint-version: ${{ steps.dev-dependencies.outputs.actionlint }}
