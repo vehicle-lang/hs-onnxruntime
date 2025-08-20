@@ -3,7 +3,7 @@ build-type:         Simple
 name:               hs-onnxruntime-capi
 synopsis:           Low-level bindings for ONNX Runtime
 description:        Low-level bindings for ONNX Runtime.
-version:            0.1.0.0
+version:            0.1.1.0
 license:            AGPL-3.0-only
 author:             Wen Kokke
 maintainer:         wenkokke@users.noreply.github.com
@@ -28,7 +28,7 @@ flag pkg-config
     Use @pkg-config@ executable to locate foreign @onnxruntime@ library.
 
 flag use-bundled-header
-  default:     True
+  default:     False
   manual:      True
   description: Use bundled copy of @onnxruntime_c_api.h@ header file
 
