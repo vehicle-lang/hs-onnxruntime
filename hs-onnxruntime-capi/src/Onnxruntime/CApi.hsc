@@ -2142,12 +2142,13 @@ ortApiRun ::
   IO [OrtValue]
 ortApiRun ortSession ortRunOptions inputNames inputs outputNames = do
   ortApi <- getOrtApi ortSession
-  alloca @(Ptr COrtValue) $ \outputsPtr ->
-    withCTypePtr ortSession $ \cOrtSessionPtr ->
-      withCTypePtr ortRunOptions $ \cOrtRunOptionsPtr ->
-        withCStringArrayLen inputNames $ \inputLen cInputNames ->
-          withCTypeArrayLen inputs $ \inputLen' cInputs ->
-            withCStringArrayLen outputNames $ \outputLen cOutputNames ->
+  withCStringArrayLen outputNames $ \outputLen cOutputNames -> do
+    allocaArray @(Ptr COrtValue) outputLen $ \outputsPtr -> do
+      pokeArray outputsPtr (replicate outputLen nullPtr)
+      withCTypePtr ortSession $ \cOrtSessionPtr ->
+        withCTypePtr ortRunOptions $ \cOrtRunOptionsPtr ->
+          withCStringArrayLen inputNames $ \inputLen cInputNames ->
+            withCTypeArrayLen inputs $ \inputLen' cInputs ->
               -- TODO turn into a proper exception
               assert (inputLen == inputLen') $ do
                 ortStatusPtr <-
@@ -3542,7 +3543,7 @@ ortApiWithTensorWithDataAsOrtValue memoryInfo values shape action = do
         alloca $ \outPtr -> do
           ortStatusPtr <-
             _wrap_OrtApi_CreateTensorWithDataAsOrtValue
-              ortApi
+              ortApi.ortApiConstPtr
               cOrtMemoryInfoPtr
               (castPtr valuePtr)
               (fromIntegral $ valueLen * sizeOf (undefined :: a))
@@ -3559,7 +3560,7 @@ ortApiWithTensorWithDataAsOrtValue memoryInfo values shape action = do
 foreign import capi unsafe
   "Onnxruntime/CApi_hsc.h _wrap_OrtApi_CreateTensorWithDataAsOrtValue"
   _wrap_OrtApi_CreateTensorWithDataAsOrtValue ::
-    OrtApi ->
+    ConstPtr OrtApi ->
     Ptr COrtMemoryInfo ->
     Ptr Void ->
     ( #{type size_t} ) ->
